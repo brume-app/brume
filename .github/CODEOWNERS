@@ -1,0 +1,10 @@
+# Default owners: root files and docs
+*                          @Enzo-MAILLEFER @VictorJacquinotFega @AnasFaFK @LederWarrior
+
+/apps/builder/             @AnasFaFK @LederWarrior @Enzo-MAILLEFER
+/packages/generator/       @VictorJacquinotFega @Enzo-MAILLEFER
+/apps/api/                 @Enzo-MAILLEFER @VictorJacquinotFega
+/packages/shared/          @VictorJacquinotFega @AnasFaFK
+/.github/                  @VictorJacquinotFega @Enzo-MAILLEFER
+**/Dockerfile*             @VictorJacquinotFega @Enzo-MAILLEFER
+/docker-compose*.yml       @VictorJacquinotFega @Enzo-MAILLEFER
