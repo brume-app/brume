@@ -1,0 +1,41 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: en-US
+reviews:
+  profile: chill
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - main
+  path_instructions:
+    - path: "apps/builder/**"
+      instructions: >
+        React and TypeScript canvas editor. Check component naming (PascalCase),
+        hooks naming (use*), accessibility, and that canvas state stays
+        compatible with the shared types.
+    - path: "apps/api/**"
+      instructions: >
+        Backend API. Check input validation, error handling, SQL safety and
+        that no secrets or personal data are logged.
+    - path: "packages/generator/**"
+      instructions: >
+        Code generator. Output must be deterministic. Flag any change that
+        alters generated output without a before/after sample.
+    - path: "packages/shared/**"
+      instructions: >
+        Shared types and exchange format. Flag breaking changes and check that
+        all consumers are updated.
+    - path: ".github/**"
+      instructions: >
+        CI and repository configuration. Check permissions are minimal, actions
+        are pinned to a version, and no secrets are exposed.
+    - path: "docs/**"
+      instructions: >
+        Documentation. Check clarity and English spelling. Structural decisions
+        need an ADR.
+chat:
+  auto_reply: true
