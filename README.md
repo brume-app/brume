@@ -41,7 +41,7 @@ pnpm install    # installs every workspace and sets up the Git hooks
 
 ## Contributing
 
-Contribution guidelines are coming soon. In the meantime, questions and ideas are welcome in [GitHub Discussions](https://github.com/brume-app/brume/discussions). To report a security issue, see [SECURITY.md](SECURITY.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md). Questions and ideas are welcome in [GitHub Discussions](https://github.com/brume-app/brume/discussions). To report a security issue, see [SECURITY.md](SECURITY.md).
 
 ## License
 
