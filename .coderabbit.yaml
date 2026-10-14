@@ -27,28 +27,28 @@ reviews:
     resolve_merge_conflict:
       enabled: false
   path_instructions:
-    - path: "apps/builder/**"
+    - path: 'apps/builder/**'
       instructions: >
         React and TypeScript canvas editor. Check component naming (PascalCase),
         hooks naming (use*), accessibility, and that canvas state stays
         compatible with the shared types.
-    - path: "apps/api/**"
+    - path: 'apps/api/**'
       instructions: >
         Backend API. Check input validation, error handling, SQL safety and
         that no secrets or personal data are logged.
-    - path: "packages/generator/**"
+    - path: 'packages/generator/**'
       instructions: >
         Code generator. Output must be deterministic. Flag any change that
         alters generated output without a before/after sample.
-    - path: "packages/shared/**"
+    - path: 'packages/shared/**'
       instructions: >
         Shared types and exchange format. Flag breaking changes and check that
         all consumers are updated.
-    - path: ".github/**"
+    - path: '.github/**'
       instructions: >
         CI and repository configuration. Check permissions are minimal, actions
         are pinned to a version, and no secrets are exposed.
-    - path: "docs/**"
+    - path: 'docs/**'
       instructions: >
         Documentation. Check clarity and English spelling. Structural decisions
         need an ADR.
