@@ -45,4 +45,6 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). Questions and ideas are welcome in [GitH
 
 ## License
 
-No license has been chosen yet.
+Brume is licensed under the [GNU AGPL-3.0](LICENSE).
+
+The code that Brume generates for your projects belongs to you. The AGPL applies to Brume itself, not to the applications you build with it.
