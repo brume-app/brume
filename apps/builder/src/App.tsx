@@ -1,3 +1,11 @@
+import { Background, Controls, ReactFlow } from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
+
 export function App() {
-  return <h1>Hello Brume</h1>;
+  return (
+    <ReactFlow>
+      <Background />
+      <Controls />
+    </ReactFlow>
+  );
 }
