@@ -1,0 +1,36 @@
+# Area labels added to pull requests from their changed paths.
+# Read by .github/workflows/labeler.yml (actions/labeler).
+
+area:canvas:
+  - changed-files:
+      - any-glob-to-any-file: apps/builder/**
+
+area:api:
+  - changed-files:
+      - any-glob-to-any-file: apps/api/**
+
+area:generator:
+  - changed-files:
+      - any-glob-to-any-file: packages/generator/**
+
+area:shared:
+  - changed-files:
+      - any-glob-to-any-file: packages/shared/**
+
+# Root config and community files. pnpm-lock.yaml is left out so adding a
+# dependency to one package does not tag infra; README.md and docs/ are left
+# out because they mostly describe the product.
+area:infra:
+  - changed-files:
+      - any-glob-to-any-file:
+          - .github/**
+          - .husky/**
+          - '**/Dockerfile*'
+          - docker-compose*.yml
+          - '.*'
+          - '*.{json,js,cjs,mjs,ts,mts}'
+          - pnpm-workspace.yaml
+          - CONTRIBUTING.md
+          - CODE_OF_CONDUCT.md
+          - SECURITY.md
+          - LICENSE
