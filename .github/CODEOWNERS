@@ -1,5 +1,5 @@
-# Default owners: root files and docs
-*                          @Enzo-MAILLEFER @VictorJacquinotFega @AnasFaFK @LederWarrior
+# Default owners (infra): root config files and anything not matched below
+*                          @Enzo-MAILLEFER @VictorJacquinotFega
 
 /apps/builder/             @AnasFaFK @LederWarrior @Enzo-MAILLEFER
 /packages/generator/       @VictorJacquinotFega @Enzo-MAILLEFER
@@ -8,3 +8,7 @@
 /.github/                  @VictorJacquinotFega @Enzo-MAILLEFER
 **/Dockerfile*             @VictorJacquinotFega @Enzo-MAILLEFER
 /docker-compose*.yml       @VictorJacquinotFega @Enzo-MAILLEFER
+/docs/                     @VictorJacquinotFega @Enzo-MAILLEFER @AnasFaFK @LederWarrior
+
+# Generated file, no owner: the package.json next to the change is reviewed instead (see #70)
+/pnpm-lock.yaml
