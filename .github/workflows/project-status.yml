@@ -1,0 +1,53 @@
+name: Project status
+
+# pull_request_target runs the workflow from main with access to secrets, so
+# pull requests from forks also move their issues. Never check out or run the
+# pull request's code in this workflow.
+on:
+  pull_request_target:
+    types: [closed]
+
+# Everything goes through the GitHub App token, so GITHUB_TOKEN needs nothing.
+permissions: {}
+
+# IDs of the Brume project, its Status field and the Validating option.
+# Find them with: gh project field-list 1 --owner brume-app --format json
+env:
+  PROJECT_NUMBER: 1
+  PROJECT_ID: PVT_kwDOFF7hVM4Bm1eR
+  STATUS_FIELD_ID: PVTSSF_lADOFF7hVM4Bm1eRzhlc0qk
+  VALIDATING_OPTION_ID: 2b4888e2
+
+jobs:
+  validating:
+    name: Move closed issues to Validating
+    if: github.event.pull_request.merged
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Create the GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ vars.PROJECT_APP_CLIENT_ID }}
+          private-key: ${{ secrets.PROJECT_APP_PRIVATE_KEY }}
+
+      - name: Move the issues closed by the pull request to Validating
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          REPO: ${{ github.repository }}
+          OWNER: ${{ github.repository_owner }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          issues=$(gh pr view "$PR_NUMBER" --repo "$REPO" \
+            --json closingIssuesReferences --jq '.closingIssuesReferences[].url')
+
+          for issue in $issues; do
+            # item-add returns the existing card when the issue is already on the board.
+            item=$(gh project item-add "$PROJECT_NUMBER" --owner "$OWNER" \
+              --url "$issue" --format json --jq '.id')
+
+            echo "Moving $issue to Validating"
+            gh project item-edit --id "$item" --project-id "$PROJECT_ID" \
+              --field-id "$STATUS_FIELD_ID" --single-select-option-id "$VALIDATING_OPTION_ID"
+          done
