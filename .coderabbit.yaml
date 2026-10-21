@@ -55,5 +55,12 @@ reviews:
       instructions: >
         Documentation. Check clarity and English spelling. Structural decisions
         need an ADR.
+    - path: '**/*.{ts,tsx}'
+      instructions: >
+        TSDoc rule (CONTRIBUTING.md, Code conventions): every exported
+        function, component and type needs a TSDoc comment. Flag exported code
+        added or changed in this PR that has none. Do not ask for comments on
+        internal helpers that are not exported: they rely on clear names and
+        only need a comment when the reason behind the code is not obvious.
 chat:
   auto_reply: true
