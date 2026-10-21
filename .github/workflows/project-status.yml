@@ -31,6 +31,9 @@ jobs:
         with:
           client-id: ${{ vars.PROJECT_APP_CLIENT_ID }}
           private-key: ${{ secrets.PROJECT_APP_PRIVATE_KEY }}
+          permission-issues: read
+          permission-organization-projects: write
+          permission-pull-requests: read
 
       - name: Move the issues closed by the pull request to Validating
         env:
