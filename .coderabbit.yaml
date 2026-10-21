@@ -64,3 +64,8 @@ reviews:
         only need a comment when the reason behind the code is not obvious.
 chat:
   auto_reply: true
+knowledge_base:
+  code_guidelines:
+    enabled: true
+    filePatterns:
+      - 'CONTRIBUTING.md'

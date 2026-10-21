@@ -73,7 +73,7 @@ The reviewer gives a first response within 48 hours.
 
 - TypeScript in strict mode, formatted by Prettier and linted by ESLint with zero warnings allowed (`pnpm lint`, `pnpm format`, `pnpm typecheck`).
 - Naming: `PascalCase` for components, types and interfaces (without an `I` prefix); `camelCase` for variables, functions and other files; `UPPER_SNAKE_CASE` for constants; `is`, `has` or `can` prefix for booleans.
-- Every exported function, component and type has a TSDoc comment.
+- Every exported function, component and type has a TSDoc comment. Internal helpers rely on clear names and only get a comment when the reason behind the code is not obvious.
 - Every bug fix comes with a test that reproduces the bug.
 - Never commit secrets. `.env` files are ignored by Git.
 
