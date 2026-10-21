@@ -26,6 +26,9 @@ reviews:
       enabled: false
     resolve_merge_conflict:
       enabled: false
+  pre_merge_checks:
+    docstrings:
+      mode: 'off'
   path_instructions:
     - path: 'apps/builder/**'
       instructions: >
