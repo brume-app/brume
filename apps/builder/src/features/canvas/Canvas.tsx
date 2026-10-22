@@ -8,6 +8,8 @@ import {
 import '@xyflow/react/dist/style.css';
 import { ModelBlock, type ModelNode } from '../model-block/ModelBlock';
 
+const nodeTypes = { model: ModelBlock };
+
 /**
  * Interactive node editor built on React Flow.
  *
@@ -45,7 +47,7 @@ export function Canvas() {
     <ReactFlow
       nodes={nodes}
       onNodesChange={onNodesChange}
-      nodeTypes={{ model: ModelBlock }}
+      nodeTypes={nodeTypes}
     >
       <Background />
       <Controls />
