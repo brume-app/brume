@@ -1,10 +1,25 @@
 import type { Node, NodeProps } from '@xyflow/react';
 
+/**
+ * Data carried by a model node in the canvas.
+ *
+ * @remarks
+ * The model name is shown in the node title and the field list defines the
+ * structure we will eventually align with the shared generator contract.
+ */
 export type ModelNodeData = {
   label: string;
   fields: string[];
 };
 
+/**
+ * A model block node rendered on the canvas.
+ *
+ * @remarks
+ * The node type is intentionally specific to the canvas feature so the builder
+ * can evolve independently from the shared generator schema before the final
+ * exchange format is merged.
+ */
 export type ModelNode = Node<ModelNodeData, 'model'>;
 
 /**

@@ -4,12 +4,9 @@ import {
   Panel,
   ReactFlow,
   useNodesState,
-  type Node,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { ModelBlock, type ModelNodeData } from '../model-block/ModelBlock';
-
-export type ModelNode = Node<ModelNodeData, 'model'>;
+import { ModelBlock, type ModelNode } from '../model-block/ModelBlock';
 
 /**
  * Interactive node editor built on React Flow.
@@ -25,16 +22,23 @@ export function Canvas() {
   const [nodes, setNodes, onNodesChange] = useNodesState<ModelNode>([]);
 
   function addNode() {
-    const newNode: ModelNode = {
-      id: crypto.randomUUID(),
-      type: 'model',
-      position: { x: 0, y: 0 },
-      data: {
-        label: 'New model',
-        fields: ['id', 'name'],
-      },
-    };
-    setNodes((currentNodes) => [...currentNodes, newNode]);
+    setNodes((currentNodes) => {
+      const index = currentNodes.length;
+      const newNode: ModelNode = {
+        id: crypto.randomUUID(),
+        type: 'model',
+        position: {
+          x: (index % 5) * 220,
+          y: Math.floor(index / 5) * 150,
+        },
+        data: {
+          label: 'New model',
+          fields: ['id', 'name'],
+        },
+      };
+
+      return [...currentNodes, newNode];
+    });
   }
 
   return (
