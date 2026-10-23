@@ -7,19 +7,21 @@ describe('Canvas', () => {
   it('starts with no nodes', () => {
     render(<Canvas />);
 
-    expect(screen.queryByText('New node')).not.toBeInTheDocument();
+    expect(screen.queryByText(/new model/i)).not.toBeInTheDocument();
   });
 
-  it('adds a node when clicking the add button', async () => {
+  it('adds a model block when clicking the add button', async () => {
     const user = userEvent.setup();
     render(<Canvas />);
 
     await user.click(screen.getByRole('button', { name: /add node/i }));
 
-    expect(screen.getByText('New node')).toBeInTheDocument();
+    expect(screen.getByText('New model')).toBeInTheDocument();
+    expect(screen.getByText('id')).toBeInTheDocument();
+    expect(screen.getByText('name')).toBeInTheDocument();
   });
 
-  it('adds a new node on each click', async () => {
+  it('adds a new model block on each click', async () => {
     const user = userEvent.setup();
     render(<Canvas />);
     const addButton = screen.getByRole('button', { name: /add node/i });
@@ -28,6 +30,6 @@ describe('Canvas', () => {
     await user.click(addButton);
     await user.click(addButton);
 
-    expect(screen.getAllByText('New node')).toHaveLength(3);
+    expect(screen.getAllByText('New model')).toHaveLength(3);
   });
 });

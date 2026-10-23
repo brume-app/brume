@@ -4,9 +4,11 @@ import {
   Panel,
   ReactFlow,
   useNodesState,
-  type Node,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import { ModelBlock, type ModelNode } from '../model-block/ModelBlock';
+
+const nodeTypes = { model: ModelBlock };
 
 /**
  * Interactive node editor built on React Flow.
@@ -19,19 +21,34 @@ import '@xyflow/react/dist/style.css';
  * Nodes live in local state only and are lost when the component unmounts.
  */
 export function Canvas() {
-  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
+  const [nodes, setNodes, onNodesChange] = useNodesState<ModelNode>([]);
 
   function addNode() {
-    const newNode: Node = {
-      id: crypto.randomUUID(),
-      position: { x: 0, y: 0 },
-      data: { label: 'New node' },
-    };
-    setNodes((currentNodes) => [...currentNodes, newNode]);
+    setNodes((currentNodes) => {
+      const index = currentNodes.length;
+      const newNode: ModelNode = {
+        id: crypto.randomUUID(),
+        type: 'model',
+        position: {
+          x: (index % 5) * 220,
+          y: Math.floor(index / 5) * 150,
+        },
+        data: {
+          label: 'New model',
+          fields: ['id', 'name'],
+        },
+      };
+
+      return [...currentNodes, newNode];
+    });
   }
 
   return (
-    <ReactFlow nodes={nodes} onNodesChange={onNodesChange}>
+    <ReactFlow
+      nodes={nodes}
+      onNodesChange={onNodesChange}
+      nodeTypes={nodeTypes}
+    >
       <Background />
       <Controls />
       <Panel position="top-left">
