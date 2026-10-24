@@ -17,8 +17,8 @@ describe('Canvas', () => {
     await user.click(screen.getByRole('button', { name: /add node/i }));
 
     expect(screen.getByText('New model')).toBeInTheDocument();
-    expect(screen.getByText('id')).toBeInTheDocument();
-    expect(screen.getByText('name')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('id')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('name')).toBeInTheDocument();
   });
 
   it('adds a new model block on each click', async () => {
