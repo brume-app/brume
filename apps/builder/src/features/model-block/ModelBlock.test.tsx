@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import type { NodeProps } from '@xyflow/react';
+import { ReactFlowProvider, type NodeProps } from '@xyflow/react';
 import { describe, expect, it } from 'vitest';
 import { ModelBlock, type ModelField, type ModelNode } from './ModelBlock';
 
@@ -24,7 +24,11 @@ function renderModelBlock(fields: ModelField[] = []) {
     positionAbsoluteY: 0,
   };
 
-  return render(<ModelBlock {...props} />);
+  return render(
+    <ReactFlowProvider>
+      <ModelBlock {...props} />
+    </ReactFlowProvider>,
+  );
 }
 
 describe('ModelBlock', () => {

@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import type { Node, NodeProps } from '@xyflow/react';
+import { useNodeId, useReactFlow } from '@xyflow/react';
 
 export const FIELD_TYPES = [
   'string',
@@ -68,25 +68,43 @@ function createField(): ModelField {
  * This is the first editable form for the model block, allowing users to add,
  * remove and configure the fields that the generator will later consume.
  */
-export function ModelBlock({ data }: NodeProps<ModelNode>) {
-  const [fields, setFields] = useState<ModelField[]>(data.fields);
+export function ModelBlock({ data, id }: NodeProps<ModelNode>) {
+  const nodeId = useNodeId();
+  const { setNodes } = useReactFlow();
+  const fields = data.fields;
+
+  function updateNodeFields(nextFields: ModelField[]) {
+    const resolvedNodeId = nodeId ?? id;
+
+    setNodes((currentNodes) =>
+      currentNodes.map((node) =>
+        node.id === resolvedNodeId
+          ? {
+              ...node,
+              data: {
+                ...node.data,
+                fields: nextFields,
+              },
+            }
+          : node,
+      ),
+    );
+  }
 
   function updateField(fieldId: string, changes: Partial<ModelField>) {
-    setFields((currentFields) =>
-      currentFields.map((field) =>
+    updateNodeFields(
+      fields.map((field) =>
         field.id === fieldId ? { ...field, ...changes } : field,
       ),
     );
   }
 
   function addField() {
-    setFields((currentFields) => [...currentFields, createField()]);
+    updateNodeFields([...fields, createField()]);
   }
 
   function removeField(fieldId: string) {
-    setFields((currentFields) =>
-      currentFields.filter((field) => field.id !== fieldId),
-    );
+    updateNodeFields(fields.filter((field) => field.id !== fieldId));
   }
 
   return (
