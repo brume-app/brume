@@ -35,7 +35,24 @@ export function Canvas() {
         },
         data: {
           label: 'New model',
-          fields: ['id', 'name'],
+          fields: [
+            {
+              id: crypto.randomUUID(),
+              name: 'id',
+              type: 'string',
+              required: true,
+              unique: true,
+              defaultValue: '',
+            },
+            {
+              id: crypto.randomUUID(),
+              name: 'name',
+              type: 'string',
+              required: false,
+              unique: false,
+              defaultValue: '',
+            },
+          ],
         },
       };
 
