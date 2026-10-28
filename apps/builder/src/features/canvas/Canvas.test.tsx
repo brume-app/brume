@@ -32,4 +32,25 @@ describe('Canvas', () => {
 
     expect(screen.getAllByText('New model')).toHaveLength(3);
   });
+
+  it('adds, edits and removes a field from a model block', async () => {
+    const user = userEvent.setup();
+    render(<Canvas />);
+
+    await user.click(screen.getByRole('button', { name: /add node/i }));
+    await user.click(screen.getByRole('button', { name: /add field/i }));
+
+    const newFieldInput = screen.getByDisplayValue('newField');
+    expect(newFieldInput).toBeInTheDocument();
+
+    await user.clear(newFieldInput);
+    await user.type(newFieldInput, 'createdAt');
+    expect(screen.getByDisplayValue('createdAt')).toBeInTheDocument();
+
+    const removeButtons = screen.getAllByRole('button', {
+      name: /remove field/i,
+    });
+    await user.click(removeButtons[removeButtons.length - 1]);
+    expect(screen.queryByDisplayValue('createdAt')).not.toBeInTheDocument();
+  });
 });
