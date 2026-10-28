@@ -1,6 +1,7 @@
 import type { Node, NodeProps } from '@xyflow/react';
-import { useNodeId, useReactFlow } from '@xyflow/react';
+import { useReactFlow } from '@xyflow/react';
 
+/** Supported field types for model fields. */
 export const FIELD_TYPES = [
   'string',
   'number',
@@ -10,6 +11,7 @@ export const FIELD_TYPES = [
   'enum',
 ] as const;
 
+/** A field type supported by the model editor. */
 export type FieldType = (typeof FIELD_TYPES)[number];
 
 /**
@@ -50,7 +52,12 @@ export type ModelNodeData = {
  */
 export type ModelNode = Node<ModelNodeData, 'model'>;
 
-function createField(): ModelField {
+/**
+ * Creates a model field with the editor defaults and optional overrides.
+ */
+export function createField(
+  overrides: Partial<Omit<ModelField, 'id'>> = {},
+): ModelField {
   return {
     id: crypto.randomUUID(),
     name: 'newField',
@@ -58,6 +65,7 @@ function createField(): ModelField {
     required: false,
     unique: false,
     defaultValue: '',
+    ...overrides,
   };
 }
 
@@ -69,42 +77,31 @@ function createField(): ModelField {
  * remove and configure the fields that the generator will later consume.
  */
 export function ModelBlock({ data, id }: NodeProps<ModelNode>) {
-  const nodeId = useNodeId();
-  const { setNodes } = useReactFlow();
+  const { updateNodeData } = useReactFlow<ModelNode>();
   const fields = data.fields;
 
-  function updateNodeFields(nextFields: ModelField[]) {
-    const resolvedNodeId = nodeId ?? id;
-
-    setNodes((currentNodes) =>
-      currentNodes.map((node) =>
-        node.id === resolvedNodeId
-          ? {
-              ...node,
-              data: {
-                ...node.data,
-                fields: nextFields,
-              },
-            }
-          : node,
-      ),
-    );
+  function updateFields(update: (currentFields: ModelField[]) => ModelField[]) {
+    updateNodeData(id, (node) => ({
+      fields: update(node.data.fields),
+    }));
   }
 
   function updateField(fieldId: string, changes: Partial<ModelField>) {
-    updateNodeFields(
-      fields.map((field) =>
+    updateFields((currentFields) =>
+      currentFields.map((field) =>
         field.id === fieldId ? { ...field, ...changes } : field,
       ),
     );
   }
 
   function addField() {
-    updateNodeFields([...fields, createField()]);
+    updateFields((currentFields) => [...currentFields, createField()]);
   }
 
   function removeField(fieldId: string) {
-    updateNodeFields(fields.filter((field) => field.id !== fieldId));
+    updateFields((currentFields) =>
+      currentFields.filter((field) => field.id !== fieldId),
+    );
   }
 
   return (
