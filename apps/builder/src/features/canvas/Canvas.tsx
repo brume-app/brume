@@ -6,7 +6,11 @@ import {
   useNodesState,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { ModelBlock, type ModelNode } from '../model-block/ModelBlock';
+import {
+  createField,
+  ModelBlock,
+  type ModelNode,
+} from '../model-block/ModelBlock';
 
 const nodeTypes = { model: ModelBlock };
 
@@ -36,22 +40,8 @@ export function Canvas() {
         data: {
           label: 'New model',
           fields: [
-            {
-              id: crypto.randomUUID(),
-              name: 'id',
-              type: 'string',
-              required: true,
-              unique: true,
-              defaultValue: '',
-            },
-            {
-              id: crypto.randomUUID(),
-              name: 'name',
-              type: 'string',
-              required: false,
-              unique: false,
-              defaultValue: '',
-            },
+            createField({ name: 'id', required: true, unique: true }),
+            createField({ name: 'name' }),
           ],
         },
       };
