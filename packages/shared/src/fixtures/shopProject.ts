@@ -1,4 +1,4 @@
-import type { Project } from '../projectSchema';
+import type { Project } from '../projectSchema.js';
 
 /**
  * Reference shop project: customers with a profile browse products sorted

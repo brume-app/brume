@@ -1,4 +1,4 @@
-import type { Project } from '../projectSchema';
+import type { Project } from '../projectSchema.js';
 
 /**
  * Reference blog project: users write posts and comment on them.

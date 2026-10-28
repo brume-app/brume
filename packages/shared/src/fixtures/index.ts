@@ -1,2 +1,2 @@
-export { blogProject } from './blogProject';
-export { shopProject } from './shopProject';
+export { blogProject } from './blogProject.js';
+export { shopProject } from './shopProject.js';
