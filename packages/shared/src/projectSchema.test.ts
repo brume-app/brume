@@ -68,6 +68,7 @@ describe('fieldSchema', () => {
       { ...baseField, name: 'my field', type: 'string' },
     ],
     ['an unknown type', { ...baseField, type: 'text' }],
+    ['an unknown property', { ...baseField, type: 'string', hint: 'Title' }],
   ])('rejects %s', (_case, field) => {
     expect(fieldSchema.safeParse(field).success).toBe(false);
   });
