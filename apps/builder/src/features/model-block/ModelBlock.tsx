@@ -152,6 +152,7 @@ export function ModelBlock({ data, id }: NodeProps<ModelNode>) {
                 >
                   <span>Field name</span>
                   <input
+                    className="nodrag"
                     aria-label="Field name"
                     value={field.name}
                     onChange={(event) =>
@@ -166,6 +167,7 @@ export function ModelBlock({ data, id }: NodeProps<ModelNode>) {
                 >
                   <span>Field type</span>
                   <select
+                    className="nodrag"
                     aria-label="Field type"
                     value={field.type}
                     onChange={(event) =>
@@ -188,6 +190,7 @@ export function ModelBlock({ data, id }: NodeProps<ModelNode>) {
                 >
                   <span>Default</span>
                   <input
+                    className="nodrag"
                     aria-label="Field default"
                     value={field.defaultValue}
                     onChange={(event) =>
@@ -208,6 +211,7 @@ export function ModelBlock({ data, id }: NodeProps<ModelNode>) {
                     }}
                   >
                     <input
+                      className="nodrag"
                       type="checkbox"
                       checked={field.required}
                       onChange={(event) =>
@@ -226,6 +230,7 @@ export function ModelBlock({ data, id }: NodeProps<ModelNode>) {
                     }}
                   >
                     <input
+                      className="nodrag"
                       type="checkbox"
                       checked={field.unique}
                       onChange={(event) =>
@@ -237,6 +242,7 @@ export function ModelBlock({ data, id }: NodeProps<ModelNode>) {
                 </div>
 
                 <button
+                  className="nodrag"
                   type="button"
                   onClick={() => removeField(field.id)}
                   style={{ justifySelf: 'start' }}
@@ -249,6 +255,7 @@ export function ModelBlock({ data, id }: NodeProps<ModelNode>) {
         )}
 
         <button
+          className="nodrag"
           type="button"
           onClick={addField}
           style={{ marginTop: '8px', width: '100%' }}

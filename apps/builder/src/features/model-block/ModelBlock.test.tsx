@@ -62,4 +62,29 @@ describe('ModelBlock', () => {
     expect(screen.getByDisplayValue('id')).toBeInTheDocument();
     expect(screen.getByDisplayValue('name')).toBeInTheDocument();
   });
+
+  it('prevents interactive controls from dragging the node', () => {
+    renderModelBlock([
+      {
+        id: 'field-1',
+        name: 'id',
+        type: 'string',
+        required: true,
+        unique: false,
+        defaultValue: '',
+      },
+    ]);
+
+    expect(screen.getByLabelText('Field name')).toHaveClass('nodrag');
+    expect(screen.getByLabelText('Field type')).toHaveClass('nodrag');
+    expect(screen.getByLabelText('Field default')).toHaveClass('nodrag');
+    expect(screen.getByLabelText('Required')).toHaveClass('nodrag');
+    expect(screen.getByLabelText('Unique')).toHaveClass('nodrag');
+    expect(screen.getByRole('button', { name: 'Remove field' })).toHaveClass(
+      'nodrag',
+    );
+    expect(screen.getByRole('button', { name: 'Add field' })).toHaveClass(
+      'nodrag',
+    );
+  });
 });
