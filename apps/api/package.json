@@ -10,6 +10,9 @@
     "dev:shared": "pnpm --filter @brume/shared dev",
     "build": "tsc -p tsconfig.build.json",
     "start": "node dist/main.js",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
     "postinstall": "prisma generate"
   },
   "dependencies": {
