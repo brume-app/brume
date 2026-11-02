@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "pnpm --filter \"@brume/api...\" build && pnpm run \"/^dev:/\"",
     "dev:build": "tsc -p tsconfig.build.json --watch --preserveWatchOutput",
-    "dev:start": "node --watch dist/main.js",
+    "dev:start": "node --env-file-if-exists=../../.env --watch dist/main.js",
     "dev:shared": "pnpm --filter @brume/shared dev",
     "build": "tsc -p tsconfig.build.json",
     "start": "node dist/main.js",
