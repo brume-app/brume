@@ -9,6 +9,10 @@ updates:
     commit-message:
       prefix: 'chore(deps)'
     groups:
+      prisma:
+        patterns:
+          - 'prisma'
+          - '@prisma/*'
       dev-dependencies:
         dependency-type: development
         update-types:
