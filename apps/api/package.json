@@ -3,6 +3,13 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "scripts": {
+    "dev": "pnpm --filter \"@brume/api...\" build && pnpm run \"/^dev:/\"",
+    "dev:build": "tsc -p tsconfig.build.json --watch --preserveWatchOutput",
+    "dev:start": "node --watch dist/main.js",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/main.js"
+  },
   "dependencies": {
     "@brume/shared": "workspace:*",
     "@nestjs/common": "^12.3.2",
