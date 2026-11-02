@@ -6,7 +6,7 @@
 
 ## Context and problem
 
-`apps/api` saves and loads projects, and will later handle authentication and collaboration. Several people will work on it, so it needs a shared structure that stays readable as it grows. The initial action plan suggested Express; the stack benchmark made at the start of the project chose NestJS, but no ADR recorded it.
+`apps/api` will save and load projects, and will later handle authentication and collaboration. Several people will work on it, so it needs a shared structure that stays readable as it grows. The initial action plan suggested Express; the stack benchmark made at the start of the project chose NestJS, but no ADR recorded it.
 
 ## Options considered
 
