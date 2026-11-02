@@ -8,7 +8,7 @@ Brume is a visual backend builder. Design your data model on a canvas (models, f
 
 - Node.js, at the version pinned in [`.nvmrc`](.nvmrc)
 - pnpm, enabled through Corepack (the version is pinned in `package.json`)
-- Docker and Docker Compose (needed once the API and database are added)
+- Docker and Docker Compose, to run PostgreSQL
 - Git and a GitHub account
 
 ## Getting started
@@ -19,7 +19,20 @@ cd brume
 nvm use         # Node.js version from .nvmrc
 corepack enable # pnpm at the pinned version
 pnpm install    # installs every workspace and sets up the Git hooks
+cp .env.example .env
 ```
+
+## Running locally
+
+| Command                              | What it does                                  |
+| ------------------------------------ | --------------------------------------------- |
+| `docker compose up -d --wait`        | Starts PostgreSQL and waits until it is ready |
+| `pnpm --filter @brume/api db:deploy` | Applies the database migrations               |
+| `pnpm --filter @brume/api dev`       | Starts the API in watch mode on port 3000     |
+| `pnpm --filter @brume/builder dev`   | Starts the builder on <http://localhost:5173> |
+| `docker compose down`                | Stops PostgreSQL, keeping its data            |
+
+See the [API README](apps/api/README.md) for the database workflow.
 
 ## Commands
 
@@ -29,6 +42,8 @@ pnpm install    # installs every workspace and sets up the Git hooks
 | `pnpm format`       | Formats the code with Prettier  |
 | `pnpm format:check` | Checks the formatting           |
 | `pnpm typecheck`    | Type-checks every package       |
+| `pnpm -r build`     | Builds every package            |
+| `pnpm test`         | Runs the tests                  |
 
 ## Project structure
 
