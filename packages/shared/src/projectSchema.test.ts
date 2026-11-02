@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { blogProject } from './fixtures/blogProject';
-import { shopProject } from './fixtures/shopProject';
-import { fieldSchema, fieldTypeSchema, projectSchema } from './projectSchema';
+import { blogProject, shopProject } from './fixtures/index.js';
+import {
+  fieldSchema,
+  fieldTypeSchema,
+  projectSchema,
+} from './projectSchema.js';
 
 const baseField = {
   id: 'field-1',

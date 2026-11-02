@@ -12,6 +12,10 @@ export default [
         'error',
         { argsIgnorePattern: '^_' },
       ],
+      '@typescript-eslint/no-extraneous-class': [
+        'error',
+        { allowWithDecorator: true },
+      ],
     },
   },
   prettier,

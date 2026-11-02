@@ -3,9 +3,21 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsc -p tsconfig.build.json --watch --preserveWatchOutput"
+  },
   "exports": {
-    ".": "./src/index.ts",
-    "./fixtures": "./src/fixtures/index.ts"
+    ".": {
+      "types": "./src/index.ts",
+      "development": "./src/index.ts",
+      "default": "./dist/index.js"
+    },
+    "./fixtures": {
+      "types": "./src/fixtures/index.ts",
+      "development": "./src/fixtures/index.ts",
+      "default": "./dist/fixtures/index.js"
+    }
   },
   "dependencies": {
     "zod": "^4.6.7"
