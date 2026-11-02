@@ -1,6 +1,6 @@
 # @brume/api
 
-The Brume backend API, built with NestJS ([ADR-008](../../docs/adr/008-nestjs-backend.md)). It stores projects in PostgreSQL through Prisma ([ADR-009](../../docs/adr/009-prisma-orm.md)).
+The Brume backend API, built with NestJS ([ADR-008](../../docs/adr/008-nestjs-backend.md)). Its database is PostgreSQL, accessed through Prisma ([ADR-009](../../docs/adr/009-prisma-orm.md)).
 
 ## Local setup
 
@@ -67,3 +67,5 @@ Never edit a migration once it is merged: add a new one instead.
 | `PORT`         | `3000`  | Port the API listens on, read from the environment   |
 
 The Prisma CLI reads the root `.env` file when it exists. A variable already set in the environment, for example in CI, takes precedence.
+
+The `POSTGRES_*` values only apply when the database volume is first created. To change them later, run `docker compose down -v`, which deletes the local data, then start the database and apply the migrations again.

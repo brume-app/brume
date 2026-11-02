@@ -6,7 +6,7 @@
 
 ## Context and problem
 
-`apps/api` saves and loads projects in PostgreSQL, with canvas documents stored as JSONB (ADR-003). It needs typed queries and versioned migrations. Brume also generates backends whose database layer is a Prisma schema, so the team has to know that tool well.
+`apps/api` will save and load projects in PostgreSQL, with canvas documents stored as JSONB (ADR-003). It needs typed queries and versioned migrations. Brume also generates backends whose database layer is a Prisma schema, so the team has to know that tool well.
 
 ## Options considered
 
