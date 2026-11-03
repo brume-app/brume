@@ -35,13 +35,17 @@ export class ProjectsService {
   /**
    * Lists every project, most recently updated first.
    *
+   * @remarks
+   * Projects updated in the same millisecond are ordered by id, newest first
+   * since ids are UUID v7, so the order never changes between two calls.
+   *
    * @returns The id, name and last update of each project, without the
    * documents.
    */
   findAll() {
     return this.prisma.project.findMany({
       select: { id: true, name: true, updatedAt: true },
-      orderBy: { updatedAt: 'desc' },
+      orderBy: [{ updatedAt: 'desc' }, { id: 'desc' }],
     });
   }
 
