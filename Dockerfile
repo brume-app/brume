@@ -1,7 +1,7 @@
 # Development image: dependencies installed, source mounted by docker-compose.yml
-FROM node:24.11.0-alpine AS dev
+FROM node:26.13.0-alpine AS dev
 
-# The corepack bundled with Node 24 is too old for pnpm 12
+# Node 26 no longer ships Corepack, so install it to get pnpm at the version pinned in package.json
 RUN npm install --global corepack@0.36.0 && corepack enable
 
 # Run as the image's non-root user, so files written into the mounted checkout are not owned by root
