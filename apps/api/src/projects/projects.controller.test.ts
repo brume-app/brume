@@ -11,6 +11,12 @@ import { PrismaService } from '../prisma/prisma.service.js';
 
 const unknownId = '01a1a000-0000-7000-8000-000000000000';
 
+/**
+ * Waits until the next write gets a later `updatedAt`, which PostgreSQL
+ * stores to the millisecond.
+ */
+const nextMillisecond = () => new Promise((resolve) => setTimeout(resolve, 5));
+
 describe('/projects', () => {
   let app: NestExpressApplication;
   const createdIds: string[] = [];
@@ -86,6 +92,7 @@ describe('/projects', () => {
     it('lists projects without documents, most recently updated first', async () => {
       const blog = await createProject(blogProject);
       const shop = await createProject(shopProject);
+      await nextMillisecond();
       await request(app.getHttpServer())
         .put(`/projects/${blog.id}`)
         .send(blogProject)
@@ -135,6 +142,7 @@ describe('/projects', () => {
     it('replaces the document and the name', async () => {
       const { id, updatedAt } = await createProject(blogProject);
       const renamed = { ...blogProject, name: 'Renamed' };
+      await nextMillisecond();
 
       const response = await request(app.getHttpServer())
         .put(`/projects/${id}`)
