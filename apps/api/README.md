@@ -32,6 +32,16 @@ Run these commands from the repository root.
 
 `pnpm install` generates the Prisma client into `src/generated/prisma`. This folder is not committed.
 
+## Tests
+
+The API tests send real HTTP requests to the app and run against PostgreSQL, like the API itself. Before running them, start the database and apply the migrations (steps 2 and 3 of the local setup), then run from the repository root:
+
+```sh
+pnpm test apps/api
+```
+
+The tests only delete the projects they create, so they can run against your local database without losing your data. In CI, the `checks` job starts its own PostgreSQL and applies the migrations before running them.
+
 ## Database scripts
 
 | Script        | What it does                                                 |
@@ -61,11 +71,11 @@ Never edit a migration once it is merged: add a new one instead.
 
 ## Configuration
 
-| Variable       | Default | Used for                                             |
-| -------------- | ------- | ---------------------------------------------------- |
-| `DATABASE_URL` |         | PostgreSQL connection string, read by the Prisma CLI |
-| `PORT`         | `3000`  | Port the API listens on, read from the environment   |
+| Variable       | Default | Used for                                                     |
+| -------------- | ------- | ------------------------------------------------------------ |
+| `DATABASE_URL` |         | PostgreSQL connection string, read by the Prisma CLI and API |
+| `PORT`         | `3000`  | Port the API listens on, read from the environment           |
 
-The Prisma CLI reads the root `.env` file when it exists. A variable already set in the environment, for example in CI, takes precedence.
+The Prisma CLI and `pnpm dev` read the root `.env` file when it exists. A variable already set in the environment, for example in CI, takes precedence.
 
 The `POSTGRES_*` values only apply when the database volume is first created. To change them later, run `docker compose down -v`, which deletes the local data, then start the database and apply the migrations again.

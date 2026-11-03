@@ -1,13 +1,37 @@
 import { z } from 'zod';
 
 /**
+ * Maximum lengths and counts a project accepts.
+ *
+ * @remarks
+ * They bound the size of a saved document. `identifierLength` is the longest
+ * name PostgreSQL keeps without truncating it. `json` defaults have no limit
+ * of their own: the API caps the size of the whole request body.
+ */
+export const projectLimits = {
+  idLength: 64,
+  identifierLength: 63,
+  projectNameLength: 100,
+  defaultValueLength: 1000,
+  models: 200,
+  fieldsPerModel: 200,
+  enumValues: 100,
+  relations: 500,
+} as const;
+
+/**
  * A name usable as an identifier in the generated code.
  *
  * @remarks
  * Starts with a letter, then only letters, digits and underscores, so the
  * generator can use it as is in Prisma and TypeScript.
  */
-export const identifierSchema = z.string().regex(/^[A-Za-z][A-Za-z0-9_]*$/);
+export const identifierSchema = z
+  .string()
+  .max(projectLimits.identifierLength)
+  .regex(/^[A-Za-z][A-Za-z0-9_]*$/);
+
+const idSchema = z.string().min(1).max(projectLimits.idLength);
 
 /**
  * Data types a model field can hold.
@@ -27,7 +51,7 @@ export const fieldTypeSchema = z.enum([
 export type FieldType = z.infer<typeof fieldTypeSchema>;
 
 const fieldBase = {
-  id: z.string().min(1),
+  id: idSchema,
   name: identifierSchema,
   required: z.boolean(),
   unique: z.boolean(),
@@ -45,7 +69,7 @@ export const fieldSchema = z.discriminatedUnion('type', [
   z.strictObject({
     ...fieldBase,
     type: z.literal('string'),
-    defaultValue: z.string().optional(),
+    defaultValue: z.string().max(projectLimits.defaultValueLength).optional(),
   }),
   z.strictObject({
     ...fieldBase,
@@ -71,7 +95,10 @@ export const fieldSchema = z.discriminatedUnion('type', [
     .strictObject({
       ...fieldBase,
       type: z.literal('enum'),
-      enumValues: z.array(identifierSchema).min(1),
+      enumValues: z
+        .array(identifierSchema)
+        .min(1)
+        .max(projectLimits.enumValues),
       defaultValue: z.string().optional(),
     })
     .refine(
@@ -98,9 +125,9 @@ export type Field = z.infer<typeof fieldSchema>;
  * primary key `id` and the foreign keys deduced from `relations`.
  */
 export const modelSchema = z.strictObject({
-  id: z.string().min(1),
+  id: idSchema,
   name: identifierSchema,
-  fields: z.array(fieldSchema),
+  fields: z.array(fieldSchema).max(projectLimits.fieldsPerModel),
 });
 
 /**
@@ -130,9 +157,9 @@ export type RelationKind = z.infer<typeof relationKindSchema>;
  * a relation from `User` to `Post` means a user has many posts.
  */
 export const relationSchema = z.strictObject({
-  id: z.string().min(1),
-  from: z.string().min(1),
-  to: z.string().min(1),
+  id: idSchema,
+  from: idSchema,
+  to: idSchema,
   kind: relationKindSchema,
 });
 
@@ -167,10 +194,14 @@ export type Position = z.infer<typeof positionSchema>;
  */
 export const projectSchema = z.strictObject({
   version: z.literal(1),
-  name: z.string().min(1),
-  models: z.array(modelSchema),
-  relations: z.array(relationSchema),
-  layout: z.record(z.string(), positionSchema),
+  name: z.string().min(1).max(projectLimits.projectNameLength),
+  models: z.array(modelSchema).max(projectLimits.models),
+  relations: z.array(relationSchema).max(projectLimits.relations),
+  layout: z
+    .record(idSchema, positionSchema)
+    .refine((layout) => Object.keys(layout).length <= projectLimits.models, {
+      message: `layout must have at most ${projectLimits.models} entries`,
+    }),
 });
 
 /**
