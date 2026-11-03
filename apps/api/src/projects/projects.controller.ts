@@ -6,6 +6,7 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
+  Put,
 } from '@nestjs/common';
 import { ProjectsService } from './projects.service.js';
 
@@ -16,13 +17,23 @@ import { ProjectsService } from './projects.service.js';
 export class ProjectsController {
   constructor(private readonly projects: ProjectsService) {}
 
-  @Post()
-  create(@Body() document: Project) {
-    return this.projects.create(document);
+  @Get()
+  findAll() {
+    return this.projects.findAll();
   }
 
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.projects.findOne(id);
+  }
+
+  @Post()
+  create(@Body() document: Project) {
+    return this.projects.create(document);
+  }
+
+  @Put(':id')
+  update(@Param('id', ParseUUIDPipe) id: string, @Body() document: Project) {
+    return this.projects.update(id, document);
   }
 }
