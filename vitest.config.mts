@@ -1,4 +1,8 @@
 import { defineConfig } from 'vitest/config';
+import { existsSync } from 'node:fs';
+
+const envFile = new URL('.env', import.meta.url);
+if (existsSync(envFile)) process.loadEnvFile(envFile);
 
 export default defineConfig({
   test: {
@@ -6,7 +10,7 @@ export default defineConfig({
       'apps/builder',
       {
         test: {
-          name: 'unit',
+          name: 'node',
           include: ['apps/api/src/**/*.test.ts', 'packages/*/src/**/*.test.ts'],
         },
       },

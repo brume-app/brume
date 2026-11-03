@@ -1,9 +1,10 @@
 import type { NestExpressApplication } from '@nestjs/platform-express';
 
 /**
- * Largest JSON request body the API reads, above which it answers 413.
+ * Largest JSON request body the API reads, in bytes, above which it answers
+ * 413.
  */
-export const bodyLimit = '1mb';
+export const bodyLimit = 1024 * 1024;
 
 /**
  * Applies the settings that live on the app rather than in a module.
