@@ -1,4 +1,4 @@
-import type { Project } from '@brume/shared';
+import { projectSchema, type Project } from '@brume/shared';
 import {
   Body,
   Controller,
@@ -28,12 +28,15 @@ export class ProjectsController {
   }
 
   @Post()
-  create(@Body() document: Project) {
+  create(@Body({ schema: projectSchema }) document: Project) {
     return this.projects.create(document);
   }
 
   @Put(':id')
-  update(@Param('id', ParseUUIDPipe) id: string, @Body() document: Project) {
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body({ schema: projectSchema }) document: Project,
+  ) {
     return this.projects.update(id, document);
   }
 }
