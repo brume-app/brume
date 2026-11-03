@@ -32,6 +32,16 @@ Run these commands from the repository root.
 
 `pnpm install` generates the Prisma client into `src/generated/prisma`. This folder is not committed.
 
+## Tests
+
+The API tests send real HTTP requests to the app and run against PostgreSQL, like the API itself. Before running them, start the database and apply the migrations (steps 2 and 3 of the local setup), then run from the repository root:
+
+```sh
+pnpm test apps/api
+```
+
+The tests only delete the projects they create, so they can run against your local database without losing your data. In CI, the `checks` job starts its own PostgreSQL and applies the migrations before running them.
+
 ## Database scripts
 
 | Script        | What it does                                                 |
