@@ -16,21 +16,33 @@ Brume is a visual backend builder. Design your data model on a canvas (models, f
 ```sh
 git clone https://github.com/brume-app/brume.git
 cd brume
-nvm use         # Node.js version from .nvmrc
-corepack enable # pnpm at the pinned version
-pnpm install    # installs every workspace and sets up the Git hooks
+nvm use           # Node.js version from .nvmrc
+corepack enable   # pnpm at the pinned version
+pnpm install      # installs every workspace and sets up the Git hooks
 cp .env.example .env
+docker compose up # PostgreSQL, API and builder, with hot reload
 ```
 
 ## Running locally
 
-| Command                              | What it does                                  |
-| ------------------------------------ | --------------------------------------------- |
-| `docker compose up -d --wait`        | Starts PostgreSQL and waits until it is ready |
-| `pnpm --filter @brume/api db:deploy` | Applies the database migrations               |
-| `pnpm --filter @brume/api dev`       | Starts the API in watch mode on port 3000     |
-| `pnpm --filter @brume/builder dev`   | Starts the builder on <http://localhost:5173> |
-| `docker compose down`                | Stops PostgreSQL, keeping its data            |
+`docker compose up` starts the whole stack. Your code is mounted into the containers, so the API and the builder reload when you save.
+
+| Command                        | What it does                                                               |
+| ------------------------------ | -------------------------------------------------------------------------- |
+| `docker compose up`            | Starts PostgreSQL, applies the migrations, then starts the API and builder |
+| `docker compose up --build -V` | Same, after a dependency or Prisma schema change (rebuilds `node_modules`) |
+| `docker compose down`          | Stops everything, keeping the database data                                |
+
+The API listens on <http://127.0.0.1:3000> and the builder on <http://localhost:5173>. Use `127.0.0.1` rather than `localhost` for the API in HTTP clients such as Bruno: the port is only published on IPv4.
+
+To run the API or the builder on your machine instead (for example to run the tests), start only the database:
+
+```sh
+docker compose up postgres -d --wait
+pnpm --filter @brume/api db:deploy
+pnpm --filter @brume/api dev
+pnpm --filter @brume/builder dev
+```
 
 See the [API README](apps/api/README.md) for the database workflow.
 

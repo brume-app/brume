@@ -4,6 +4,8 @@ The Brume backend API, built with NestJS ([ADR-008](../../docs/adr/008-nestjs-ba
 
 ## Local setup
 
+To run the API in Docker with the rest of the stack, use `docker compose up` instead (see the [root README](../../README.md#running-locally)). The steps below run it on your machine.
+
 Run these commands from the repository root.
 
 1. Create your local environment file. The defaults work as is:
@@ -12,10 +14,10 @@ Run these commands from the repository root.
    cp .env.example .env
    ```
 
-2. Start PostgreSQL in Docker and wait until it accepts connections:
+2. Start only PostgreSQL in Docker and wait until it accepts connections:
 
    ```sh
-   docker compose up -d --wait
+   docker compose up postgres -d --wait
    ```
 
 3. Apply the migrations:
