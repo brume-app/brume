@@ -35,7 +35,7 @@ docker compose up # PostgreSQL, API and builder, with hot reload
 
 The API listens on <http://127.0.0.1:3000> and the builder on <http://localhost:5173>. Use `127.0.0.1` rather than `localhost` for the API in HTTP clients such as Bruno: the port is only published on IPv4.
 
-To run the API or the builder on your machine instead (for example to run the tests), start only the database:
+To run the API or the builder on your machine instead (for example to run the tests), start only the database. Run the API and the builder in separate terminals, since each `dev` command keeps running until you stop it:
 
 ```sh
 docker compose up postgres -d --wait

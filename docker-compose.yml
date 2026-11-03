@@ -12,6 +12,7 @@ x-app: &app
     - /app/packages/shared/node_modules
   environment:
     DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    PORT: 3000
 
 services:
   postgres:
