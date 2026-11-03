@@ -37,37 +37,39 @@ describe('projectSchema', () => {
     ).toBe(false);
   });
 
-  it.each([
+  const sizeCases: [string, number, (size: number) => object][] = [
     [
-      'a name over the limit',
-      { name: 'a'.repeat(projectLimits.projectNameLength + 1) },
+      'name length',
+      projectLimits.projectNameLength,
+      (size) => ({ name: 'a'.repeat(size) }),
     ],
     [
-      'an id over the limit',
-      {
-        models: [
-          { id: 'a'.repeat(projectLimits.idLength + 1), name: 'A', fields: [] },
-        ],
-      },
+      'id length',
+      projectLimits.idLength,
+      (size) => ({
+        models: [{ id: 'a'.repeat(size), name: 'A', fields: [] }],
+      }),
     ],
     [
-      'too many models',
-      {
-        models: times(projectLimits.models + 1, (index) => ({
+      'model count',
+      projectLimits.models,
+      (size) => ({
+        models: times(size, (index) => ({
           id: `model-${index}`,
           name: `Model${index}`,
           fields: [],
         })),
-      },
+      }),
     ],
     [
-      'too many fields in a model',
-      {
+      'field count',
+      projectLimits.fieldsPerModel,
+      (size) => ({
         models: [
           {
             id: 'model',
             name: 'Model',
-            fields: times(projectLimits.fieldsPerModel + 1, (index) => ({
+            fields: times(size, (index) => ({
               ...baseField,
               id: `field-${index}`,
               name: `field${index}`,
@@ -75,33 +77,41 @@ describe('projectSchema', () => {
             })),
           },
         ],
-      },
+      }),
     ],
     [
-      'too many relations',
-      {
-        relations: times(projectLimits.relations + 1, (index) => ({
+      'relation count',
+      projectLimits.relations,
+      (size) => ({
+        relations: times(size, (index) => ({
           id: `relation-${index}`,
           from: 'user',
           to: 'post',
           kind: 'one-to-many',
         })),
-      },
+      }),
     ],
     [
-      'too many layout entries',
-      {
+      'layout size',
+      projectLimits.models,
+      (size) => ({
         layout: Object.fromEntries(
-          times(projectLimits.models + 1, (index) => [
-            `model-${index}`,
-            { x: 0, y: 0 },
-          ]),
+          times(size, (index) => [`model-${index}`, { x: 0, y: 0 }]),
         ),
-      },
+      }),
     ],
-  ])('rejects %s', (_case, changes) => {
+  ];
+
+  it.each(sizeCases)('accepts a %s at the limit', (_case, limit, changes) => {
     expect(
-      projectSchema.safeParse({ ...blogProject, ...changes }).success,
+      projectSchema.safeParse({ ...blogProject, ...changes(limit) }).success,
+    ).toBe(true);
+  });
+
+  it.each(sizeCases)('rejects a %s over the limit', (_case, limit, changes) => {
+    expect(
+      projectSchema.safeParse({ ...blogProject, ...changes(limit + 1) })
+        .success,
     ).toBe(false);
   });
 });
@@ -142,33 +152,6 @@ describe('fieldSchema', () => {
       'a name that is not an identifier',
       { ...baseField, name: 'my field', type: 'string' },
     ],
-    [
-      'a name over the limit',
-      {
-        ...baseField,
-        name: 'a'.repeat(projectLimits.identifierLength + 1),
-        type: 'string',
-      },
-    ],
-    [
-      'a string default over the limit',
-      {
-        ...baseField,
-        type: 'string',
-        defaultValue: 'a'.repeat(projectLimits.defaultValueLength + 1),
-      },
-    ],
-    [
-      'too many enum values',
-      {
-        ...baseField,
-        type: 'enum',
-        enumValues: times(
-          projectLimits.enumValues + 1,
-          (index) => `VALUE_${index}`,
-        ),
-      },
-    ],
     ['an unknown type', { ...baseField, type: 'text' }],
     ['an unknown property', { ...baseField, type: 'string', hint: 'Title' }],
   ])('rejects %s', (_case, field) => {
@@ -185,18 +168,44 @@ describe('fieldSchema', () => {
       { ...baseField, type: 'date', defaultValue: '2026-01-01T00:00:00Z' },
     ],
     [
-      'a name at the limit',
-      {
-        ...baseField,
-        name: 'a'.repeat(projectLimits.identifierLength),
-        type: 'string',
-      },
-    ],
-    [
       'a json default',
       { ...baseField, type: 'json', defaultValue: { theme: 'dark' } },
     ],
   ])('accepts %s', (_case, field) => {
     expect(fieldSchema.safeParse(field).success).toBe(true);
+  });
+
+  const sizeCases: [string, number, (size: number) => object][] = [
+    [
+      'name length',
+      projectLimits.identifierLength,
+      (size) => ({ ...baseField, name: 'a'.repeat(size), type: 'string' }),
+    ],
+    [
+      'string default length',
+      projectLimits.defaultValueLength,
+      (size) => ({
+        ...baseField,
+        type: 'string',
+        defaultValue: 'a'.repeat(size),
+      }),
+    ],
+    [
+      'enum value count',
+      projectLimits.enumValues,
+      (size) => ({
+        ...baseField,
+        type: 'enum',
+        enumValues: times(size, (index) => `VALUE_${index}`),
+      }),
+    ],
+  ];
+
+  it.each(sizeCases)('accepts a %s at the limit', (_case, limit, field) => {
+    expect(fieldSchema.safeParse(field(limit)).success).toBe(true);
+  });
+
+  it.each(sizeCases)('rejects a %s over the limit', (_case, limit, field) => {
+    expect(fieldSchema.safeParse(field(limit + 1)).success).toBe(false);
   });
 });

@@ -74,6 +74,23 @@ describe('/projects', () => {
       ]);
     });
 
+    it('gives the full path of a nested issue', async () => {
+      const document = structuredClone(blogProject);
+      document.models[0].fields[0].name = '1email';
+
+      const response = await request(app.getHttpServer())
+        .post('/projects')
+        .send(document)
+        .expect(400);
+
+      expect(response.body.issues).toEqual([
+        {
+          path: ['models', 0, 'fields', 0, 'name'],
+          message: expect.any(String),
+        },
+      ]);
+    });
+
     it('rejects a body over the size limit with 413', async () => {
       const body = JSON.stringify({
         ...blogProject,
