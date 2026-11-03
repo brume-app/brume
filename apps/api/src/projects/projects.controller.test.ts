@@ -110,6 +110,24 @@ describe('/projects', () => {
         { id: shop.id, name: shopProject.name, updatedAt: expect.any(String) },
       ]);
     });
+
+    it('lists projects updated at the same time newest first', async () => {
+      const older = await createProject(blogProject);
+      const newer = await createProject(shopProject);
+      await app.get(PrismaService).project.updateMany({
+        where: { id: { in: [older.id, newer.id] } },
+        data: { updatedAt: new Date('2026-01-01T00:00:00Z') },
+      });
+
+      const response = await request(app.getHttpServer())
+        .get('/projects')
+        .expect(200);
+      const listedIds = (response.body as { id: string }[])
+        .map((project) => project.id)
+        .filter((id) => [older.id, newer.id].includes(id));
+
+      expect(listedIds).toEqual([newer.id, older.id]);
+    });
   });
 
   describe('GET /projects/:id', () => {
