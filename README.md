@@ -7,7 +7,7 @@ Brume is a visual backend builder. Design your data model on a canvas (models, f
 ## Prerequisites
 
 - Node.js, at the version pinned in [`.nvmrc`](.nvmrc)
-- pnpm, enabled through Corepack (the version is pinned in `package.json`)
+- pnpm, through Corepack (the version is pinned in `package.json`). Node.js 26 no longer ships Corepack, so install it first (see below)
 - Docker and Docker Compose, to run PostgreSQL
 - Git and a GitHub account
 
@@ -16,11 +16,12 @@ Brume is a visual backend builder. Design your data model on a canvas (models, f
 ```sh
 git clone https://github.com/brume-app/brume.git
 cd brume
-nvm use           # Node.js version from .nvmrc
-corepack enable   # pnpm at the pinned version
-pnpm install      # installs every workspace and sets up the Git hooks
+nvm use                       # Node.js version from .nvmrc
+npm install --global corepack # Node.js 26 no longer ships Corepack
+corepack enable               # pnpm at the pinned version
+pnpm install                  # installs every workspace and sets up the Git hooks
 cp .env.example .env
-docker compose up # PostgreSQL, API and builder, with hot reload
+docker compose up             # PostgreSQL, API and builder, with hot reload
 ```
 
 ## Running locally
