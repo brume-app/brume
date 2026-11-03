@@ -1,3 +1,18 @@
+x-app: &app
+  build:
+    context: .
+    target: dev
+  volumes:
+    - .:/app
+    - /app/node_modules
+    - /app/apps/api/node_modules
+    - /app/apps/api/src/generated
+    - /app/apps/builder/node_modules
+    - /app/packages/generator/node_modules
+    - /app/packages/shared/node_modules
+  environment:
+    DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+
 services:
   postgres:
     image: postgres:18-alpine
@@ -15,6 +30,28 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+
+  migrate:
+    <<: *app
+    command: pnpm --filter @brume/api db:deploy
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    <<: *app
+    command: pnpm --filter @brume/api dev
+    ports:
+      - '127.0.0.1:3000:3000'
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  builder:
+    <<: *app
+    command: pnpm --filter @brume/builder dev --host
+    ports:
+      - '127.0.0.1:5173:5173'
 
 volumes:
   postgres-data:
