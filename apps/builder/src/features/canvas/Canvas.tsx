@@ -3,10 +3,13 @@ import {
   Controls,
   Panel,
   ReactFlow,
+  ReactFlowProvider,
+  useReactFlow,
   useNodesState,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { ModelBlock, type ModelNode } from '../model-block/ModelBlock';
+import { BLOCK_DRAG_TYPE, BlockPalette } from './BlockPalette';
 import { createModelNode } from './nodeFactory';
 
 const nodeTypes = { model: ModelBlock };
@@ -21,34 +24,58 @@ const nodeTypes = { model: ModelBlock };
  *
  * Nodes live in local state only and are lost when the component unmounts.
  */
-export function Canvas() {
-  const [nodes, setNodes, onNodesChange] = useNodesState<ModelNode>([]);
+function CanvasContent() {
+  const [nodes, setNodes, onNodesChange] = useNodesState<ModelNode>([
+    createModelNode({ x: 80, y: 80 }),
+  ]);
+  const { screenToFlowPosition } = useReactFlow<ModelNode>();
 
-  function addNode() {
-    setNodes((currentNodes) => {
-      const index = currentNodes.length;
-      const newNode = createModelNode({
-        x: (index % 5) * 220,
-        y: Math.floor(index / 5) * 150,
-      });
+  function handleDragOver(event: React.DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'copy';
+  }
 
-      return [...currentNodes, newNode];
-    });
+  function handleDrop(event: React.DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    if (event.dataTransfer.getData(BLOCK_DRAG_TYPE) !== 'model') {
+      return;
+    }
+
+    setNodes((currentNodes) => [
+      ...currentNodes,
+      createModelNode(
+        screenToFlowPosition({ x: event.clientX, y: event.clientY }),
+      ),
+    ]);
   }
 
   return (
-    <ReactFlow
-      nodes={nodes}
-      onNodesChange={onNodesChange}
-      nodeTypes={nodeTypes}
+    <div
+      data-testid="canvas-drop-zone"
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+      style={{ width: '100%', height: '100%' }}
     >
-      <Background />
-      <Controls />
-      <Panel position="top-left">
-        <button type="button" onClick={addNode}>
-          Add Node
-        </button>
-      </Panel>
-    </ReactFlow>
+      <ReactFlow
+        nodes={nodes}
+        onNodesChange={onNodesChange}
+        nodeTypes={nodeTypes}
+      >
+        <Background />
+        <Controls />
+        <Panel position="top-left">
+          <BlockPalette />
+        </Panel>
+      </ReactFlow>
+    </div>
+  );
+}
+
+/** Interactive node editor built on React Flow. */
+export function Canvas() {
+  return (
+    <ReactFlowProvider>
+      <CanvasContent />
+    </ReactFlowProvider>
   );
 }
