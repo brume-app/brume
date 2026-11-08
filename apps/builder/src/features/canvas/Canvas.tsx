@@ -1,18 +1,28 @@
 import {
+  addEdge,
   Background,
   Controls,
   Panel,
   ReactFlow,
+  ReactFlowProvider,
+  useEdgesState,
+  useReactFlow,
   useNodesState,
+  type Connection,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import { useState } from 'react';
+import { ModelBlock, type ModelNode } from '../model-block/ModelBlock';
+import { BLOCK_DRAG_TYPE, BlockPalette } from './BlockPalette';
+import { createModelNode } from './nodeFactory';
 import {
-  createField,
-  ModelBlock,
-  type ModelNode,
-} from '../model-block/ModelBlock';
+  createRelationEdge,
+  RelationEdge,
+  type RelationEdgeModel,
+} from './RelationEdge';
 
 const nodeTypes = { model: ModelBlock };
+const edgeTypes = { relation: RelationEdge };
 
 /**
  * Interactive node editor built on React Flow.
@@ -24,45 +34,88 @@ const nodeTypes = { model: ModelBlock };
  *
  * Nodes live in local state only and are lost when the component unmounts.
  */
-export function Canvas() {
-  const [nodes, setNodes, onNodesChange] = useNodesState<ModelNode>([]);
-
-  function addNode() {
-    setNodes((currentNodes) => {
-      const index = currentNodes.length;
-      const newNode: ModelNode = {
-        id: crypto.randomUUID(),
-        type: 'model',
-        position: {
-          x: (index % 5) * 220,
-          y: Math.floor(index / 5) * 150,
-        },
-        data: {
-          label: 'New model',
-          fields: [
-            createField({ name: 'id', required: true, unique: true }),
-            createField({ name: 'name' }),
-          ],
-        },
-      };
-
-      return [...currentNodes, newNode];
+function CanvasContent() {
+  const [initialGraph] = useState(() => {
+    const nodes = [
+      createModelNode({ x: 80, y: 80 }, 'User'),
+      createModelNode({ x: 460, y: 80 }, 'Post'),
+    ];
+    const relation = createRelationEdge({
+      source: nodes[0].id,
+      sourceHandle: 'source',
+      target: nodes[1].id,
+      targetHandle: 'target',
     });
+
+    return { nodes, edges: relation === null ? [] : [relation] };
+  });
+  const [nodes, setNodes, onNodesChange] = useNodesState<ModelNode>(
+    initialGraph.nodes,
+  );
+  const [edges, setEdges, onEdgesChange] = useEdgesState<RelationEdgeModel>(
+    initialGraph.edges,
+  );
+  const { screenToFlowPosition } = useReactFlow<ModelNode>();
+
+  function handleConnect(connection: Connection) {
+    const newEdge = createRelationEdge(connection);
+    if (newEdge === null) {
+      return;
+    }
+
+    setEdges((currentEdges) => addEdge(newEdge, currentEdges));
+  }
+
+  function handleDragOver(event: React.DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'copy';
+  }
+
+  function handleDrop(event: React.DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    if (event.dataTransfer.getData(BLOCK_DRAG_TYPE) !== 'model') {
+      return;
+    }
+
+    setNodes((currentNodes) => [
+      ...currentNodes,
+      createModelNode(
+        screenToFlowPosition({ x: event.clientX, y: event.clientY }),
+      ),
+    ]);
   }
 
   return (
-    <ReactFlow
-      nodes={nodes}
-      onNodesChange={onNodesChange}
-      nodeTypes={nodeTypes}
+    <div
+      data-testid="canvas-drop-zone"
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+      style={{ width: '100%', height: '100%' }}
     >
-      <Background />
-      <Controls />
-      <Panel position="top-left">
-        <button type="button" onClick={addNode}>
-          Add Node
-        </button>
-      </Panel>
-    </ReactFlow>
+      <ReactFlow
+        nodes={nodes}
+        onNodesChange={onNodesChange}
+        nodeTypes={nodeTypes}
+        edges={edges}
+        onEdgesChange={onEdgesChange}
+        onConnect={handleConnect}
+        edgeTypes={edgeTypes}
+      >
+        <Background />
+        <Controls />
+        <Panel position="top-left">
+          <BlockPalette />
+        </Panel>
+      </ReactFlow>
+    </div>
+  );
+}
+
+/** Interactive node editor built on React Flow. */
+export function Canvas() {
+  return (
+    <ReactFlowProvider>
+      <CanvasContent />
+    </ReactFlowProvider>
   );
 }

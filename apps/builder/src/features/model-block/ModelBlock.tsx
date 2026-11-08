@@ -1,4 +1,4 @@
-import type { Node, NodeProps } from '@xyflow/react';
+import { Handle, Position, type Node, type NodeProps } from '@xyflow/react';
 import { useReactFlow } from '@xyflow/react';
 
 /** Supported field types for model fields. */
@@ -113,8 +113,11 @@ export function ModelBlock({ data, id }: NodeProps<ModelNode>) {
         background: '#ffffff',
         boxShadow: '0 6px 18px rgba(15, 23, 42, 0.08)',
         overflow: 'hidden',
+        position: 'relative',
       }}
     >
+      <Handle type="target" position={Position.Left} id="target" />
+      <Handle type="source" position={Position.Right} id="source" />
       <div
         style={{
           background: '#f8fafc',

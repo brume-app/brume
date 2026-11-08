@@ -1,44 +1,49 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import { Canvas } from './Canvas';
 
 describe('Canvas', () => {
-  it('starts with no nodes', () => {
+  it('starts with two connected editable model blocks', async () => {
     render(<Canvas />);
 
-    expect(screen.queryByText(/new model/i)).not.toBeInTheDocument();
+    expect(screen.getByText('User')).toBeInTheDocument();
+    expect(screen.getByText('Post')).toBeInTheDocument();
+    expect(screen.getAllByDisplayValue('id')).toHaveLength(2);
+    expect(
+      await screen.findByRole('combobox', { name: 'Relation type' }),
+    ).toHaveValue('one-to-many');
   });
 
-  it('adds a model block when clicking the add button', async () => {
-    const user = userEvent.setup();
+  it('adds a model block when dropping it from the palette', () => {
     render(<Canvas />);
 
-    await user.click(screen.getByRole('button', { name: /add node/i }));
+    fireEvent.drop(screen.getByTestId('canvas-drop-zone'), {
+      clientX: 320,
+      clientY: 240,
+      dataTransfer: {
+        getData: (type: string) =>
+          type === 'application/brume-block' ? 'model' : '',
+      },
+    });
 
-    expect(screen.getByText('New model')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('id')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('name')).toBeInTheDocument();
-  });
-
-  it('adds a new model block on each click', async () => {
-    const user = userEvent.setup();
-    render(<Canvas />);
-    const addButton = screen.getByRole('button', { name: /add node/i });
-
-    await user.click(addButton);
-    await user.click(addButton);
-    await user.click(addButton);
-
-    expect(screen.getAllByText('New model')).toHaveLength(3);
+    expect(screen.getAllByText('New model')).toHaveLength(1);
   });
 
   it('adds, edits and removes a field from a model block', async () => {
     const user = userEvent.setup();
     render(<Canvas />);
 
-    await user.click(screen.getByRole('button', { name: /add node/i }));
-    await user.click(screen.getByRole('button', { name: /add field/i }));
+    fireEvent.drop(screen.getByTestId('canvas-drop-zone'), {
+      dataTransfer: {
+        getData: (type: string) =>
+          type === 'application/brume-block' ? 'model' : '',
+      },
+    });
+    const addFieldButtons = screen.getAllByRole('button', {
+      name: /add field/i,
+    });
+    await user.click(addFieldButtons[addFieldButtons.length - 1]);
 
     const newFieldInput = screen.getByDisplayValue('newField');
     expect(newFieldInput).toBeInTheDocument();
