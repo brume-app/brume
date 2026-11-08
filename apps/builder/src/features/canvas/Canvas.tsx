@@ -11,6 +11,7 @@ import {
   type Connection,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import { useState } from 'react';
 import { ModelBlock, type ModelNode } from '../model-block/ModelBlock';
 import { BLOCK_DRAG_TYPE, BlockPalette } from './BlockPalette';
 import { createModelNode } from './nodeFactory';
@@ -34,10 +35,26 @@ const edgeTypes = { relation: RelationEdge };
  * Nodes live in local state only and are lost when the component unmounts.
  */
 function CanvasContent() {
-  const [nodes, setNodes, onNodesChange] = useNodesState<ModelNode>([
-    createModelNode({ x: 80, y: 80 }),
-  ]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState<RelationEdgeModel>([]);
+  const [initialGraph] = useState(() => {
+    const nodes = [
+      createModelNode({ x: 80, y: 80 }, 'User'),
+      createModelNode({ x: 460, y: 80 }, 'Post'),
+    ];
+    const relation = createRelationEdge({
+      source: nodes[0].id,
+      sourceHandle: 'source',
+      target: nodes[1].id,
+      targetHandle: 'target',
+    });
+
+    return { nodes, edges: relation === null ? [] : [relation] };
+  });
+  const [nodes, setNodes, onNodesChange] = useNodesState<ModelNode>(
+    initialGraph.nodes,
+  );
+  const [edges, setEdges, onEdgesChange] = useEdgesState<RelationEdgeModel>(
+    initialGraph.edges,
+  );
   const { screenToFlowPosition } = useReactFlow<ModelNode>();
 
   function handleConnect(connection: Connection) {

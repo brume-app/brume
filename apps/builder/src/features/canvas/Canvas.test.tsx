@@ -4,11 +4,15 @@ import { describe, expect, it } from 'vitest';
 import { Canvas } from './Canvas';
 
 describe('Canvas', () => {
-  it('starts with one editable model block', () => {
+  it('starts with two connected editable model blocks', async () => {
     render(<Canvas />);
 
-    expect(screen.getByText('New model')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('id')).toBeInTheDocument();
+    expect(screen.getByText('User')).toBeInTheDocument();
+    expect(screen.getByText('Post')).toBeInTheDocument();
+    expect(screen.getAllByDisplayValue('id')).toHaveLength(2);
+    expect(
+      await screen.findByRole('combobox', { name: 'Relation type' }),
+    ).toHaveValue('one-to-many');
   });
 
   it('adds a model block when dropping it from the palette', () => {
@@ -23,7 +27,7 @@ describe('Canvas', () => {
       },
     });
 
-    expect(screen.getAllByText('New model')).toHaveLength(2);
+    expect(screen.getAllByText('New model')).toHaveLength(1);
   });
 
   it('adds, edits and removes a field from a model block', async () => {
