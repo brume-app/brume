@@ -1,18 +1,27 @@
 import {
+  addEdge,
   Background,
   Controls,
   Panel,
   ReactFlow,
   ReactFlowProvider,
+  useEdgesState,
   useReactFlow,
   useNodesState,
+  type Connection,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { ModelBlock, type ModelNode } from '../model-block/ModelBlock';
 import { BLOCK_DRAG_TYPE, BlockPalette } from './BlockPalette';
 import { createModelNode } from './nodeFactory';
+import {
+  createRelationEdge,
+  RelationEdge,
+  type RelationEdgeModel,
+} from './RelationEdge';
 
 const nodeTypes = { model: ModelBlock };
+const edgeTypes = { relation: RelationEdge };
 
 /**
  * Interactive node editor built on React Flow.
@@ -28,7 +37,17 @@ function CanvasContent() {
   const [nodes, setNodes, onNodesChange] = useNodesState<ModelNode>([
     createModelNode({ x: 80, y: 80 }),
   ]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<RelationEdgeModel>([]);
   const { screenToFlowPosition } = useReactFlow<ModelNode>();
+
+  function handleConnect(connection: Connection) {
+    const newEdge = createRelationEdge(connection);
+    if (newEdge === null) {
+      return;
+    }
+
+    setEdges((currentEdges) => addEdge(newEdge, currentEdges));
+  }
 
   function handleDragOver(event: React.DragEvent<HTMLDivElement>) {
     event.preventDefault();
@@ -60,6 +79,10 @@ function CanvasContent() {
         nodes={nodes}
         onNodesChange={onNodesChange}
         nodeTypes={nodeTypes}
+        edges={edges}
+        onEdgesChange={onEdgesChange}
+        onConnect={handleConnect}
+        edgeTypes={edgeTypes}
       >
         <Background />
         <Controls />
