@@ -87,4 +87,20 @@ describe('ModelBlock', () => {
       'nodrag',
     );
   });
+
+  it('renders source and target handles for relations', () => {
+    const { container } = renderModelBlock([
+      {
+        id: 'field-1',
+        name: 'id',
+        type: 'string',
+        required: true,
+        unique: true,
+        defaultValue: '',
+      },
+    ]);
+
+    expect(container.querySelector('.react-flow__handle.source')).toBeTruthy();
+    expect(container.querySelector('.react-flow__handle.target')).toBeTruthy();
+  });
 });
