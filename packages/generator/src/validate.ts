@@ -1,5 +1,30 @@
-import type { Model, Project, RelationKind } from '@brume/shared';
+import {
+  projectLimits,
+  type Model,
+  type Project,
+  type RelationKind,
+} from '@brume/shared';
+import { enumName, PRIMARY_KEY_NAME, relationNames } from './naming';
 import type { GenerationIssue } from './types';
+
+/**
+ * Model and enum names that Prisma rejects.
+ *
+ * @remarks
+ * Measured on Prisma 7.10.1: its scalar type names, `PrismaClient` and the
+ * JavaScript keywords. Field names have no reserved words.
+ */
+export const RESERVED_TYPE_NAMES: ReadonlySet<string> = new Set([
+  ...['String', 'Int', 'Float', 'Boolean', 'DateTime', 'Json', 'Bytes'],
+  ...['Decimal', 'BigInt', 'PrismaClient'],
+  ...['async', 'await', 'break', 'case', 'catch', 'class', 'const'],
+  ...['continue', 'debugger', 'default', 'delete', 'do', 'else', 'enum'],
+  ...['export', 'extends', 'false', 'finally', 'for', 'function', 'if'],
+  ...['implements', 'import', 'in', 'instanceof', 'interface', 'let'],
+  ...['new', 'null', 'package', 'private', 'protected', 'public'],
+  ...['return', 'super', 'switch', 'this', 'throw', 'true', 'try'],
+  ...['typeof', 'var', 'void', 'while', 'with', 'yield'],
+]);
 
 type Path = GenerationIssue['path'];
 
@@ -25,14 +50,25 @@ interface LinkedRelation {
  *   models: not supported yet, the format has no relation name to tell them
  *   apart.
  * - An enum with the same value twice.
+ * - Two model or generated enum names that are equal ignoring case (`User` and
+ *   `user` both give `prisma.user`), or a generated enum named like a model.
+ * - A model or generated enum name that Prisma reserves
+ *   ({@link RESERVED_TYPE_NAMES}).
+ * - Two fields of a model with the same name, counting the fields `parse`
+ *   adds: the primary key `id`, the foreign keys and the relation fields.
+ * - A generated foreign key or enum name longer than 63 characters:
+ *   PostgreSQL would shorten it, and two shortened names could clash.
  *
  * @returns Every issue found, or an empty array if the project is valid.
  */
 export function validate(project: Project): GenerationIssue[] {
+  const { issues: relationIssues, linked } = checkRelations(project);
   return [
     ...duplicateIds(project),
-    ...checkRelations(project).issues,
+    ...relationIssues,
     ...duplicateEnumValues(project),
+    ...typeNameIssues(project),
+    ...fieldNameIssues(project, linked),
   ];
 }
 
@@ -117,6 +153,157 @@ function duplicateEnumValues(project: Project): GenerationIssue[] {
       );
     }),
   );
+}
+
+/** A model name, or the name of the enum generated for an `enum` field. */
+interface TypeName {
+  name: string;
+  path: Path;
+  /** `undefined` for a model, `<Model>.<field>` for a generated enum. */
+  enumOf?: string;
+}
+
+function typeNameIssues(project: Project): GenerationIssue[] {
+  const models: TypeName[] = project.models.map((model, m) => ({
+    name: model.name,
+    path: ['models', m, 'name'],
+  }));
+  const enums: TypeName[] = project.models.flatMap((model, m) =>
+    model.fields.flatMap((field, f) =>
+      field.type === 'enum'
+        ? [
+            {
+              name: enumName(model.name, field.name),
+              path: ['models', m, 'fields', f, 'name'],
+              enumOf: `${model.name}.${field.name}`,
+            },
+          ]
+        : [],
+    ),
+  );
+  const types = [...models, ...enums];
+  const subject = (type: TypeName) =>
+    type.enumOf
+      ? `The enum generated for ${type.enumOf} would be named "${type.name}"`
+      : `This model is named "${type.name}"`;
+
+  return [
+    ...duplicates(types, (type) => type.name.toLowerCase()).map(
+      ([type, first]) => {
+        const other = first.enumOf
+          ? `the enum generated for ${first.enumOf}`
+          : `the model ${first.name}`;
+        const ignoringCase =
+          type.name === first.name ? '' : ' (names are compared ignoring case)';
+        return issue(
+          type.path,
+          `${subject(type)}, like ${other}${ignoringCase}`,
+        );
+      },
+    ),
+    ...types
+      .filter((type) => RESERVED_TYPE_NAMES.has(type.name))
+      .map((type) =>
+        issue(type.path, `${subject(type)}, a name Prisma reserves`),
+      ),
+    ...enums
+      .filter((type) => type.name.length > projectLimits.identifierLength)
+      .map((type) =>
+        issue(type.path, `${subject(type)}, ${tooLong(type.name)}`),
+      ),
+  ];
+}
+
+/** A field of a model, as `parse` will create it. */
+interface FieldName {
+  name: string;
+  path: Path;
+  origin: 'primary key' | 'field' | 'foreign key' | 'relation field';
+  relation?: LinkedRelation;
+}
+
+function fieldNameIssues(
+  project: Project,
+  linked: LinkedRelation[],
+): GenerationIssue[] {
+  const fieldsByModel = new Map<Model, FieldName[]>(
+    project.models.map((model, m) => [
+      model,
+      [{ name: PRIMARY_KEY_NAME, path: ['models', m], origin: 'primary key' }],
+    ]),
+  );
+  const add = (model: Model, field: FieldName) =>
+    fieldsByModel.get(model)?.push(field);
+
+  // Generated fields come before the user's fields, so that a collision
+  // points to the user's field, the one that can be renamed.
+  for (const relation of linked) {
+    const { from, to, index, kind } = relation;
+    const names = relationNames(kind, from.name, to.name);
+    const generated = (name: string, origin: FieldName['origin']) => ({
+      name,
+      path: ['relations', index],
+      origin,
+      relation,
+    });
+    add(from, generated(names.from, 'relation field'));
+    add(to, generated(names.to, 'relation field'));
+    if (names.foreignKey) add(to, generated(names.foreignKey, 'foreign key'));
+  }
+  project.models.forEach((model, m) =>
+    model.fields.forEach((field, f) =>
+      add(model, {
+        name: field.name,
+        path: ['models', m, 'fields', f, 'name'],
+        origin: 'field',
+      }),
+    ),
+  );
+
+  return project.models.flatMap((model) => {
+    const fields = fieldsByModel.get(model) ?? [];
+    const clashes = duplicates(fields, (field) => field.name).map(
+      ([field, first]) =>
+        issue(
+          field.path,
+          `${model.name} would have two fields named "${field.name}": ${describeField(field, 'this')} and ${describeField(first, 'other')}`,
+        ),
+    );
+    const tooLongKeys = fields
+      .filter(
+        (field) =>
+          field.origin === 'foreign key' &&
+          field.name.length > projectLimits.identifierLength,
+      )
+      .map((field) =>
+        issue(
+          field.path,
+          `The foreign key "${field.name}" this relation adds to ${model.name} is ${tooLong(field.name)}`,
+        ),
+      );
+    return [...clashes, ...tooLongKeys];
+  });
+}
+
+function describeField(field: FieldName, which: 'this' | 'other'): string {
+  const relation = field.relation
+    ? `the relation ${field.relation.from.name} → ${field.relation.to.name}`
+    : '';
+  switch (field.origin) {
+    case 'primary key':
+      return 'the primary key the generator adds';
+    case 'field':
+      return which === 'this' ? 'this field' : 'another field';
+    case 'foreign key':
+    case 'relation field':
+      return which === 'this'
+        ? `the ${field.origin} of this relation`
+        : `the ${field.origin} of ${relation}`;
+  }
+}
+
+function tooLong(name: string): string {
+  return `${name.length} characters long, over the ${projectLimits.identifierLength} PostgreSQL allows`;
 }
 
 /**
