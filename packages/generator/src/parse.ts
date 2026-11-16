@@ -1,11 +1,5 @@
 import type { Field, Project, Relation, RelationKind } from '@brume/shared';
-import {
-  enumName,
-  foreignKeyName,
-  listFieldName,
-  PRIMARY_KEY_NAME,
-  relationFieldName,
-} from './naming';
+import { enumName, PRIMARY_KEY_NAME, relationNames } from './naming';
 
 /**
  * The internal representation the generator works on.
@@ -190,44 +184,26 @@ function relationFields(
   from: ParsedModel,
   to: ParsedModel,
 ): [RelationField, RelationField] {
-  switch (kind) {
-    case 'one-to-many':
-      return [listField(to), keyField(from, false)];
-    case 'one-to-one':
-      return [singleField(to), keyField(from, true)];
-    case 'many-to-many':
-      return [listField(to), listField(from)];
-    default:
-      throw new Error(`Unknown relation kind ${kind satisfies never}`);
-  }
-}
-
-function singleField(target: ParsedModel): RelationField {
-  return {
-    name: relationFieldName(target.name),
-    target,
-    isList: false,
+  const names = relationNames(kind, from.name, to.name);
+  const fromField: RelationField = {
+    name: names.from,
+    target: to,
+    isList: kind !== 'one-to-one',
     required: false,
   };
-}
-
-function listField(target: ParsedModel): RelationField {
-  return {
-    ...singleField(target),
-    name: listFieldName(target.name),
-    isList: true,
+  const toField: RelationField = {
+    name: names.to,
+    target: from,
+    isList: kind === 'many-to-many',
+    required: false,
   };
-}
-
-function keyField(target: ParsedModel, unique: boolean): RelationField {
-  const field = singleField(target);
-  return {
-    ...field,
-    foreignKey: {
-      name: foreignKeyName(field.name),
-      target,
-      unique,
+  if (names.foreignKey) {
+    toField.foreignKey = {
+      name: names.foreignKey,
+      target: from,
+      unique: kind === 'one-to-one',
       required: false,
-    },
-  };
+    };
+  }
+  return [fromField, toField];
 }

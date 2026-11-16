@@ -1,3 +1,4 @@
+import type { RelationKind } from '@brume/shared';
 import pluralize from 'pluralize';
 
 /**
@@ -44,6 +45,52 @@ export function foreignKeyName(relationField: string): string {
  */
 export function enumName(modelName: string, fieldName: string): string {
   return upperFirst(modelName) + upperFirst(fieldName);
+}
+
+/**
+ * Names of the fields a relation adds: a relation field on each side, and a
+ * foreign key on the `to` side for `one-to-many` and `one-to-one`.
+ */
+export interface RelationNames {
+  /** Relation field added to the `from` model. */
+  from: string;
+  /** Relation field added to the `to` model. */
+  to: string;
+  /** Foreign key added to the `to` model, if the relation kind has one. */
+  foreignKey?: string;
+}
+
+/**
+ * Names the fields a relation adds, for example from `User` to `Post`:
+ *
+ * - `one-to-many`: `posts` on `User`, `user` and `userId` on `Post`
+ * - `one-to-one`: `post` on `User`, `user` and `userId` on `Post`
+ * - `many-to-many`: `posts` on `User`, `users` on `Post`, no foreign key
+ */
+export function relationNames(
+  kind: RelationKind,
+  fromModel: string,
+  toModel: string,
+): RelationNames {
+  const toField = relationFieldName(fromModel);
+  switch (kind) {
+    case 'one-to-many':
+      return {
+        from: listFieldName(toModel),
+        to: toField,
+        foreignKey: foreignKeyName(toField),
+      };
+    case 'one-to-one':
+      return {
+        from: relationFieldName(toModel),
+        to: toField,
+        foreignKey: foreignKeyName(toField),
+      };
+    case 'many-to-many':
+      return { from: listFieldName(toModel), to: listFieldName(fromModel) };
+    default:
+      throw new Error(`Unknown relation kind ${kind satisfies never}`);
+  }
 }
 
 function camelCase(name: string): string {
