@@ -1,5 +1,5 @@
 # Development image: dependencies installed, source mounted by docker-compose.yml
-FROM node:26.13.0-alpine AS dev
+FROM node:26.13.1-alpine AS dev
 
 # Node 26 no longer ships Corepack, so install it to get pnpm at the version pinned in package.json
 RUN npm install --global corepack@0.36.0 && corepack enable
