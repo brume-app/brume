@@ -8,10 +8,10 @@ import {
   useEdgesState,
   useReactFlow,
   useNodesState,
+  type XYPosition,
   type Connection,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { useState } from 'react';
 import { ModelBlock, type ModelNode } from '../model-block/ModelBlock';
 import { BLOCK_DRAG_TYPE, BlockPalette } from './BlockPalette';
 import { createModelNode } from './nodeFactory';
@@ -24,41 +24,13 @@ import {
 const nodeTypes = { model: ModelBlock };
 const edgeTypes = { relation: RelationEdge };
 
-/**
- * Interactive node editor built on React Flow.
- *
- * @remarks
- * The parent must give the component an explicit size: React Flow
- * fills its container and renders nothing if that container has no
- * height.
- *
- * Nodes live in local state only and are lost when the component unmounts.
- */
 function CanvasContent() {
-  const [initialGraph] = useState(() => {
-    const nodes = [
-      createModelNode({ x: 80, y: 80 }, 'User'),
-      createModelNode({ x: 460, y: 80 }, 'Post'),
-    ];
-    const relation = createRelationEdge({
-      source: nodes[0].id,
-      sourceHandle: 'source',
-      target: nodes[1].id,
-      targetHandle: 'target',
-    });
-
-    return { nodes, edges: relation === null ? [] : [relation] };
-  });
-  const [nodes, setNodes, onNodesChange] = useNodesState<ModelNode>(
-    initialGraph.nodes,
-  );
-  const [edges, setEdges, onEdgesChange] = useEdgesState<RelationEdgeModel>(
-    initialGraph.edges,
-  );
+  const [nodes, setNodes, onNodesChange] = useNodesState<ModelNode>([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<RelationEdgeModel>([]);
   const { screenToFlowPosition } = useReactFlow<ModelNode>();
 
   function handleConnect(connection: Connection) {
-    const newEdge = createRelationEdge(connection);
+    const newEdge = createRelationEdge(connection, edges);
     if (newEdge === null) {
       return;
     }
@@ -71,18 +43,34 @@ function CanvasContent() {
     event.dataTransfer.dropEffect = 'copy';
   }
 
+  function addModelNode(position: XYPosition) {
+    setNodes((currentNodes) => [...currentNodes, createModelNode(position)]);
+  }
+
+  function handleCreateBlock(type: 'model') {
+    if (type !== 'model') {
+      return;
+    }
+
+    setNodes((currentNodes) => {
+      const index = currentNodes.length;
+      return [
+        ...currentNodes,
+        createModelNode({
+          x: 80 + (index % 4) * 320,
+          y: 80 + Math.floor(index / 4) * 220,
+        }),
+      ];
+    });
+  }
+
   function handleDrop(event: React.DragEvent<HTMLDivElement>) {
     event.preventDefault();
     if (event.dataTransfer.getData(BLOCK_DRAG_TYPE) !== 'model') {
       return;
     }
 
-    setNodes((currentNodes) => [
-      ...currentNodes,
-      createModelNode(
-        screenToFlowPosition({ x: event.clientX, y: event.clientY }),
-      ),
-    ]);
+    addModelNode(screenToFlowPosition({ x: event.clientX, y: event.clientY }));
   }
 
   return (
@@ -104,14 +92,23 @@ function CanvasContent() {
         <Background />
         <Controls />
         <Panel position="top-left">
-          <BlockPalette />
+          <BlockPalette onCreateBlock={handleCreateBlock} />
         </Panel>
       </ReactFlow>
     </div>
   );
 }
 
-/** Interactive node editor built on React Flow. */
+/**
+ * Interactive node editor built on React Flow.
+ *
+ * @remarks
+ * The parent must give the component an explicit size: React Flow
+ * fills its container and renders nothing if that container has no
+ * height.
+ *
+ * Nodes live in local state only and are lost when the component unmounts.
+ */
 export function Canvas() {
   return (
     <ReactFlowProvider>

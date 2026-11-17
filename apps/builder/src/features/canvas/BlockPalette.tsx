@@ -1,10 +1,21 @@
 /** MIME type used to identify draggable backend blocks. */
 export const BLOCK_DRAG_TYPE = 'application/brume-block';
 
+const blockTypes = [{ label: 'Model', type: 'model' }] as const;
+
+type BlockType = (typeof blockTypes)[number]['type'];
+
+type BlockPaletteProps = {
+  onCreateBlock: (type: BlockType) => void;
+};
+
 /** A palette containing the backend blocks available to the canvas. */
-export function BlockPalette() {
-  function handleDragStart(event: React.DragEvent<HTMLButtonElement>) {
-    event.dataTransfer.setData(BLOCK_DRAG_TYPE, 'model');
+export function BlockPalette({ onCreateBlock }: BlockPaletteProps) {
+  function handleDragStart(
+    event: React.DragEvent<HTMLButtonElement>,
+    type: BlockType,
+  ) {
+    event.dataTransfer.setData(BLOCK_DRAG_TYPE, type);
     event.dataTransfer.effectAllowed = 'copy';
   }
 
@@ -23,14 +34,18 @@ export function BlockPalette() {
       <strong style={{ color: '#0f172a', fontSize: '12px' }}>
         Backend blocks
       </strong>
-      <button
-        type="button"
-        draggable
-        onDragStart={handleDragStart}
-        style={{ cursor: 'grab' }}
-      >
-        Model
-      </button>
+      {blockTypes.map((block) => (
+        <button
+          key={block.type}
+          type="button"
+          draggable
+          onClick={() => onCreateBlock(block.type)}
+          onDragStart={(event) => handleDragStart(event, block.type)}
+          style={{ cursor: 'grab' }}
+        >
+          {block.label}
+        </button>
+      ))}
     </div>
   );
 }

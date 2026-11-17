@@ -14,13 +14,24 @@ export type RelationEdgeData = {
   kind: RelationKind;
 };
 
+/** A React Flow edge representing a model relation. */
 export type RelationEdgeModel = Edge<RelationEdgeData, 'relation'>;
+
+const DEFAULT_RELATION_KIND: RelationKind = 'one-to-many';
 
 /** Creates a default relation edge from a valid React Flow connection. */
 export function createRelationEdge(
   connection: Connection,
+  existingEdges: RelationEdgeModel[] = [],
 ): RelationEdgeModel | null {
-  if (connection.source === connection.target) {
+  const hasSameModels = existingEdges.some(
+    (edge) =>
+      (edge.source === connection.source &&
+        edge.target === connection.target) ||
+      (edge.source === connection.target && edge.target === connection.source),
+  );
+
+  if (connection.source === connection.target || hasSameModels) {
     return null;
   }
 
@@ -28,7 +39,7 @@ export function createRelationEdge(
     ...connection,
     id: crypto.randomUUID(),
     type: 'relation',
-    data: { kind: 'one-to-many' },
+    data: { kind: DEFAULT_RELATION_KIND },
   };
 }
 
@@ -83,7 +94,7 @@ export function RelationEdge({
           <select
             aria-label="Relation type"
             className="nodrag nopan"
-            value={data?.kind ?? 'one-to-many'}
+            value={data?.kind ?? DEFAULT_RELATION_KIND}
             onChange={handleKindChange}
           >
             {relationOptions.map((option) => (

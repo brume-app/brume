@@ -4,15 +4,20 @@ import { describe, expect, it } from 'vitest';
 import { Canvas } from './Canvas';
 
 describe('Canvas', () => {
-  it('starts with two connected editable model blocks', async () => {
+  it('starts with no model blocks', () => {
     render(<Canvas />);
 
-    expect(screen.getByText('User')).toBeInTheDocument();
-    expect(screen.getByText('Post')).toBeInTheDocument();
-    expect(screen.getAllByDisplayValue('id')).toHaveLength(2);
-    expect(
-      await screen.findByRole('combobox', { name: 'Relation type' }),
-    ).toHaveValue('one-to-many');
+    expect(screen.queryByText('New model')).not.toBeInTheDocument();
+  });
+
+  it('adds a model block when activating the palette button', async () => {
+    const user = userEvent.setup();
+    render(<Canvas />);
+
+    await user.click(screen.getByRole('button', { name: 'Model' }));
+
+    expect(screen.getByText('New model')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('id')).toBeInTheDocument();
   });
 
   it('adds a model block when dropping it from the palette', () => {

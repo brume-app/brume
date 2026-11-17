@@ -112,156 +112,161 @@ export function ModelBlock({ data, id }: NodeProps<ModelNode>) {
         borderRadius: '12px',
         background: '#ffffff',
         boxShadow: '0 6px 18px rgba(15, 23, 42, 0.08)',
-        overflow: 'hidden',
         position: 'relative',
       }}
     >
       <Handle type="target" position={Position.Left} id="target" />
       <Handle type="source" position={Position.Right} id="source" />
-      <div
-        style={{
-          background: '#f8fafc',
-          borderBottom: '1px solid #e2e8f0',
-          padding: '8px 12px',
-          fontWeight: 700,
-          color: '#0f172a',
-        }}
-      >
-        {data.label}
-      </div>
+      <div style={{ overflow: 'hidden', borderRadius: '11px' }}>
+        <div
+          style={{
+            background: '#f8fafc',
+            borderBottom: '1px solid #e2e8f0',
+            padding: '8px 12px',
+            fontWeight: 700,
+            color: '#0f172a',
+          }}
+        >
+          {data.label}
+        </div>
 
-      <div style={{ padding: '8px 12px 12px' }}>
-        {fields.length === 0 ? (
-          <div style={{ color: '#64748b', padding: '8px 0' }}>
-            No fields yet
-          </div>
-        ) : (
-          <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
-            {fields.map((field) => (
-              <li
-                key={field.id}
-                style={{
-                  display: 'grid',
-                  gap: '8px',
-                  padding: '8px 0',
-                  borderBottom: '1px solid #e2e8f0',
-                }}
-              >
-                <label
-                  style={{ display: 'grid', gap: '4px', fontSize: '12px' }}
+        <div style={{ padding: '8px 12px 12px' }}>
+          {fields.length === 0 ? (
+            <div style={{ color: '#64748b', padding: '8px 0' }}>
+              No fields yet
+            </div>
+          ) : (
+            <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+              {fields.map((field) => (
+                <li
+                  key={field.id}
+                  style={{
+                    display: 'grid',
+                    gap: '8px',
+                    padding: '8px 0',
+                    borderBottom: '1px solid #e2e8f0',
+                  }}
                 >
-                  <span>Field name</span>
-                  <input
-                    className="nodrag"
-                    aria-label="Field name"
-                    value={field.name}
-                    onChange={(event) =>
-                      updateField(field.id, { name: event.target.value })
-                    }
-                    style={{ padding: '6px 8px' }}
-                  />
-                </label>
-
-                <label
-                  style={{ display: 'grid', gap: '4px', fontSize: '12px' }}
-                >
-                  <span>Field type</span>
-                  <select
-                    className="nodrag"
-                    aria-label="Field type"
-                    value={field.type}
-                    onChange={(event) =>
-                      updateField(field.id, {
-                        type: event.target.value as FieldType,
-                      })
-                    }
-                    style={{ padding: '6px 8px' }}
-                  >
-                    {FIELD_TYPES.map((type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-
-                <label
-                  style={{ display: 'grid', gap: '4px', fontSize: '12px' }}
-                >
-                  <span>Default</span>
-                  <input
-                    className="nodrag"
-                    aria-label="Field default"
-                    value={field.defaultValue}
-                    onChange={(event) =>
-                      updateField(field.id, {
-                        defaultValue: event.target.value,
-                      })
-                    }
-                    style={{ padding: '6px 8px' }}
-                  />
-                </label>
-
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                   <label
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                    }}
+                    style={{ display: 'grid', gap: '4px', fontSize: '12px' }}
                   >
+                    <span>Field name</span>
                     <input
                       className="nodrag"
-                      type="checkbox"
-                      checked={field.required}
+                      aria-label="Field name"
+                      value={field.name}
+                      onChange={(event) =>
+                        updateField(field.id, { name: event.target.value })
+                      }
+                      style={{ padding: '6px 8px' }}
+                    />
+                  </label>
+
+                  <label
+                    style={{ display: 'grid', gap: '4px', fontSize: '12px' }}
+                  >
+                    <span>Field type</span>
+                    <select
+                      className="nodrag"
+                      aria-label="Field type"
+                      value={field.type}
                       onChange={(event) =>
                         updateField(field.id, {
-                          required: event.target.checked,
+                          type: event.target.value as FieldType,
                         })
                       }
-                    />
-                    Required
+                      style={{ padding: '6px 8px' }}
+                    >
+                      {FIELD_TYPES.map((type) => (
+                        <option key={type} value={type}>
+                          {type}
+                        </option>
+                      ))}
+                    </select>
                   </label>
+
                   <label
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                    }}
+                    style={{ display: 'grid', gap: '4px', fontSize: '12px' }}
                   >
+                    <span>Default</span>
                     <input
                       className="nodrag"
-                      type="checkbox"
-                      checked={field.unique}
+                      aria-label="Field default"
+                      value={field.defaultValue}
                       onChange={(event) =>
-                        updateField(field.id, { unique: event.target.checked })
+                        updateField(field.id, {
+                          defaultValue: event.target.value,
+                        })
                       }
+                      style={{ padding: '6px 8px' }}
                     />
-                    Unique
                   </label>
-                </div>
 
-                <button
-                  className="nodrag"
-                  type="button"
-                  onClick={() => removeField(field.id)}
-                  style={{ justifySelf: 'start' }}
-                >
-                  Remove field
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
+                  <div
+                    style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}
+                  >
+                    <label
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                      }}
+                    >
+                      <input
+                        className="nodrag"
+                        type="checkbox"
+                        checked={field.required}
+                        onChange={(event) =>
+                          updateField(field.id, {
+                            required: event.target.checked,
+                          })
+                        }
+                      />
+                      Required
+                    </label>
+                    <label
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                      }}
+                    >
+                      <input
+                        className="nodrag"
+                        type="checkbox"
+                        checked={field.unique}
+                        onChange={(event) =>
+                          updateField(field.id, {
+                            unique: event.target.checked,
+                          })
+                        }
+                      />
+                      Unique
+                    </label>
+                  </div>
 
-        <button
-          className="nodrag"
-          type="button"
-          onClick={addField}
-          style={{ marginTop: '8px', width: '100%' }}
-        >
-          Add field
-        </button>
+                  <button
+                    className="nodrag"
+                    type="button"
+                    onClick={() => removeField(field.id)}
+                    style={{ justifySelf: 'start' }}
+                  >
+                    Remove field
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <button
+            className="nodrag"
+            type="button"
+            onClick={addField}
+            style={{ marginTop: '8px', width: '100%' }}
+          >
+            Add field
+          </button>
+        </div>
       </div>
     </div>
   );
