@@ -1,5 +1,10 @@
 import type { FieldType } from '@brume/shared';
-import type { ParsedField, ParsedModel, ProjectModel } from './parse';
+import type {
+  ParsedField,
+  ParsedModel,
+  ProjectModel,
+  RelationField,
+} from './parse';
 
 /**
  * Prisma type of each field type, except `enum` fields, which use the enum
@@ -20,7 +25,17 @@ const PRISMA_TYPES = {
  *
  * @remarks
  * Each model starts with the primary key `id`, a UUID v7, followed by the
- * user's fields in project order. Relations come with #31. The output is laid
+ * user's fields in project order, then its relation fields in relation order.
+ * A relation field that stores a key is followed by that foreign key:
+ *
+ * - `one-to-many` from `User` to `Post`: `posts Post[]` on `User`; `user User?`
+ *   and `userId String?` on `Post`, with `@@index([userId])`, since PostgreSQL
+ *   does not index foreign keys by itself.
+ * - `one-to-one`: the same, with `@unique` on the foreign key instead of an
+ *   index, and `post Post?` on `User`.
+ * - `many-to-many`: a list on each side; Prisma creates the join table.
+ *
+ * Relations are optional until they can be required (#119). The output is laid
  * out exactly like `prisma format`, and the same project always gives the same
  * schema.
  */
@@ -52,11 +67,41 @@ function modelBlock(model: ParsedModel): string {
     [model.primaryKey.name, 'String', '@id @default(uuid(7)) @db.Uuid'],
     ...model.fields.map((field) => [
       field.name,
-      prismaType(field) + (field.required ? '' : '?'),
+      prismaType(field) + optional(field),
       attributes(field),
     ]),
+    ...model.relationFields.flatMap(relationRows),
   ];
-  return block(`model ${model.name}`, alignColumns(rows));
+  const indexes = model.foreignKeys
+    .filter((key) => !key.unique)
+    .map((key) => `@@index([${key.name}])`);
+  return block(`model ${model.name}`, [
+    ...alignColumns(rows),
+    ...(indexes.length > 0 ? ['', ...indexes] : []),
+  ]);
+}
+
+/** The row of a relation field, followed by the row of its foreign key. */
+function relationRows(field: RelationField): string[][] {
+  const type = field.target.name + (field.isList ? '[]' : optional(field));
+  const key = field.foreignKey;
+  if (!key) return [[field.name, type, '']];
+  return [
+    [
+      field.name,
+      type,
+      `@relation(fields: [${key.name}], references: [${key.target.primaryKey.name}])`,
+    ],
+    [
+      key.name,
+      `String${optional(key)}`,
+      [key.unique ? '@unique' : '', '@db.Uuid'].filter(Boolean).join(' '),
+    ],
+  ];
+}
+
+function optional(item: { required: boolean }): string {
+  return item.required ? '' : '?';
 }
 
 function prismaType(field: ParsedField): string {
@@ -129,5 +174,6 @@ function alignColumns(rows: string[][]): string[] {
 }
 
 function block(header: string, lines: string[]): string {
-  return [`${header} {`, ...lines.map((line) => `  ${line}`), '}'].join('\n');
+  const indented = lines.map((line) => (line ? `  ${line}` : ''));
+  return [`${header} {`, ...indented, '}'].join('\n');
 }
