@@ -11,6 +11,8 @@
     "pluralize": "^8.0.0"
   },
   "devDependencies": {
-    "@types/pluralize": "^0.0.33"
+    "@types/node": "^26.6.6",
+    "@types/pluralize": "^0.0.33",
+    "prisma": "7.10.1"
   }
 }
