@@ -1,10 +1,10 @@
 import type { Project } from '@brume/shared';
 import { blogProject, shopProject } from '@brume/shared/fixtures';
 import { execFile } from 'node:child_process';
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { describe, expect, it } from 'vitest';
 import { generateFiles } from './generateFiles';
@@ -22,23 +22,43 @@ const prismaCli = createRequire(import.meta.url).resolve(
 );
 
 /**
- * Runs the Prisma CLI of the same version as `apps/api` on a schema, in a
- * temporary folder. Rejects with Prisma's output when the command fails.
+ * Temporary folders for the Prisma CLI, inside the generator's `node_modules`
+ * so that the generated `prisma.config.ts` can load `prisma/config`.
  */
-async function runPrisma(schema: string, ...args: string[]): Promise<void> {
-  const folder = await mkdtemp(join(tmpdir(), 'brume-prisma-'));
+const tempRoot = fileURLToPath(
+  new URL('../node_modules/.cache/brume-generator-tests', import.meta.url),
+);
+
+/**
+ * Writes files to a temporary folder and runs the Prisma CLI of the same
+ * version as `apps/api` there, so it reads the generated `prisma.config.ts`.
+ * Resolves with the command output, rejects when the command fails.
+ */
+async function runPrisma(
+  files: Map<string, string>,
+  ...args: string[]
+): Promise<string> {
+  await mkdir(tempRoot, { recursive: true });
+  const folder = await mkdtemp(join(tempRoot, 'prisma-'));
   try {
-    const schemaFile = join(folder, 'schema.prisma');
-    await writeFile(schemaFile, schema);
-    await promisify(execFile)(
+    for (const [path, content] of files) {
+      await mkdir(dirname(join(folder, path)), { recursive: true });
+      await writeFile(join(folder, path), content);
+    }
+    const { stdout } = await promisify(execFile)(
       process.execPath,
-      [prismaCli, ...args, '--schema', schemaFile],
+      [prismaCli, ...args],
       { cwd: folder, env: { ...process.env, CHECKPOINT_DISABLE: '1' } },
     );
+    return stdout;
   } finally {
     await rm(folder, { recursive: true, force: true });
   }
 }
+
+/** Files with only a schema, at the path Prisma reads by default. */
+const schemaOnly = (schema: string) =>
+  new Map([['prisma/schema.prisma', schema]]);
 
 /** A project with every field type, constraint and kind of default. */
 const everyFieldProject: Project = {
@@ -160,8 +180,10 @@ describe('generateFiles', () => {
     const unaligned = `${datasource}model Item {\n  id String @id\n  name String\n}\n`;
 
     await Promise.all([
-      expect(runPrisma(invalid, 'validate')).rejects.toThrow(),
-      expect(runPrisma(unaligned, 'format', '--check')).rejects.toThrow(),
+      expect(runPrisma(schemaOnly(invalid), 'validate')).rejects.toThrow(),
+      expect(
+        runPrisma(schemaOnly(unaligned), 'format', '--check'),
+      ).rejects.toThrow(),
     ]);
   }, 60_000);
 
@@ -172,12 +194,52 @@ describe('generateFiles', () => {
   ])(
     'writes a valid, formatted Prisma schema for the %s project',
     async (_name, project) => {
-      const schema = filesOf(project).get('prisma/schema.prisma') ?? '';
+      const files = filesOf(project);
 
       await Promise.all([
-        runPrisma(schema, 'validate'),
-        runPrisma(schema, 'format', '--check'),
+        runPrisma(files, 'validate'),
+        runPrisma(files, 'format', '--check'),
       ]);
+    },
+    60_000,
+  );
+
+  it.each([
+    [
+      'blog',
+      blogProject,
+      [
+        'ALTER TABLE "Post" ADD CONSTRAINT "Post_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id")',
+        'ALTER TABLE "Comment" ADD CONSTRAINT "Comment_postId_fkey" FOREIGN KEY ("postId") REFERENCES "Post"("id")',
+        'ALTER TABLE "Comment" ADD CONSTRAINT "Comment_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id")',
+        'CREATE INDEX "Post_userId_idx" ON "Post"("userId")',
+      ],
+    ],
+    [
+      'shop',
+      shopProject,
+      [
+        'CREATE UNIQUE INDEX "Profile_userId_key" ON "Profile"("userId")',
+        'ALTER TABLE "Profile" ADD CONSTRAINT "Profile_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id")',
+        'CREATE TABLE "_CategoryToProduct"',
+        'ADD CONSTRAINT "_CategoryToProduct_A_fkey" FOREIGN KEY ("A") REFERENCES "Category"("id")',
+        'ADD CONSTRAINT "_CategoryToProduct_B_fkey" FOREIGN KEY ("B") REFERENCES "Product"("id")',
+      ],
+    ],
+  ])(
+    'creates the foreign keys and join tables of the %s sample project in SQL',
+    async (_name, project, statements) => {
+      const sql = await runPrisma(
+        filesOf(project),
+        'migrate',
+        'diff',
+        '--from-empty',
+        '--to-schema',
+        'prisma/schema.prisma',
+        '--script',
+      );
+
+      for (const statement of statements) expect(sql).toContain(statement);
     },
     60_000,
   );
