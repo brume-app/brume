@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id    String   @id @default(uuid(7)) @db.Uuid
+  email String   @unique
+  role  UserRole @default(CUSTOMER)
+}
+
+model Profile {
+  id          String  @id @default(uuid(7)) @db.Uuid
+  bio         String?
+  preferences Json?
+}
+
+model Product {
+  id     String        @id @default(uuid(7)) @db.Uuid
+  name   String
+  price  Float
+  stock  Float         @default(0)
+  status ProductStatus @default(DRAFT)
+}
+
+model Category {
+  id   String @id @default(uuid(7)) @db.Uuid
+  name String @unique
+}
+
+enum UserRole {
+  CUSTOMER
+  ADMIN
+}
+
+enum ProductStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
