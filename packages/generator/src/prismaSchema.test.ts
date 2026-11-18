@@ -1,4 +1,4 @@
-import type { Field, Project } from '@brume/shared';
+import type { Field, Project, RelationKind } from '@brume/shared';
 import { describe, expect, it } from 'vitest';
 import { parse } from './parse';
 import { prismaSchema } from './prismaSchema';
@@ -122,3 +122,91 @@ describe('prismaSchema', () => {
 function escapeRegExp(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
+
+describe('prismaSchema relations', () => {
+  /** The schema of two models with no fields of their own, linked by one relation. */
+  function schemaWithRelation(
+    kind: RelationKind,
+    from: string,
+    to: string,
+  ): string {
+    const project: Project = {
+      version: 1,
+      name: 'Test',
+      models: [
+        { id: 'from', name: from, fields: [] },
+        { id: 'to', name: to, fields: [] },
+      ],
+      relations: [{ id: 'link', from: 'from', to: 'to', kind }],
+      layout: {},
+    };
+    return prismaSchema(parse(project));
+  }
+
+  it('writes a one-to-many relation with an indexed foreign key on the "many" side', () => {
+    const schema = schemaWithRelation('one-to-many', 'User', 'Post');
+
+    expect(schema).toContain(
+      [
+        'model User {',
+        '  id    String @id @default(uuid(7)) @db.Uuid',
+        '  posts Post[]',
+        '}',
+      ].join('\n'),
+    );
+    expect(schema).toContain(
+      [
+        'model Post {',
+        '  id     String  @id @default(uuid(7)) @db.Uuid',
+        '  user   User?   @relation(fields: [userId], references: [id])',
+        '  userId String? @db.Uuid',
+        '',
+        '  @@index([userId])',
+        '}',
+      ].join('\n'),
+    );
+  });
+
+  it('writes a one-to-one relation with a unique foreign key', () => {
+    const schema = schemaWithRelation('one-to-one', 'User', 'Profile');
+
+    expect(schema).toContain(
+      [
+        'model User {',
+        '  id      String   @id @default(uuid(7)) @db.Uuid',
+        '  profile Profile?',
+        '}',
+      ].join('\n'),
+    );
+    expect(schema).toContain(
+      [
+        'model Profile {',
+        '  id     String  @id @default(uuid(7)) @db.Uuid',
+        '  user   User?   @relation(fields: [userId], references: [id])',
+        '  userId String? @unique @db.Uuid',
+        '}',
+      ].join('\n'),
+    );
+  });
+
+  it('writes a many-to-many relation as a list on each side', () => {
+    const schema = schemaWithRelation('many-to-many', 'Product', 'Category');
+
+    expect(schema).toContain(
+      [
+        'model Product {',
+        '  id         String     @id @default(uuid(7)) @db.Uuid',
+        '  categories Category[]',
+        '}',
+      ].join('\n'),
+    );
+    expect(schema).toContain(
+      [
+        'model Category {',
+        '  id       String    @id @default(uuid(7)) @db.Uuid',
+        '  products Product[]',
+        '}',
+      ].join('\n'),
+    );
+  });
+});
