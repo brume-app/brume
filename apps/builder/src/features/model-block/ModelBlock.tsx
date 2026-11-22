@@ -1,5 +1,5 @@
 import type { Node, NodeProps } from '@xyflow/react';
-import { useReactFlow } from '@xyflow/react';
+import { Handle, Position, useReactFlow } from '@xyflow/react';
 
 /** Supported field types for model fields. */
 export const FIELD_TYPES = [
@@ -127,6 +127,16 @@ export function ModelBlock({ data, id }: NodeProps<ModelNode>) {
         {data.label}
       </div>
 
+      <Handle
+        type="source"
+        position={Position.Top}
+        style={{ background: '#0f172a', width: '0.6rem', height: '0.6rem' }}
+      />
+      <Handle
+        type="target"
+        position={Position.Left}
+        style={{ background: '#0f172a', width: '0.6rem', height: '0.6rem' }}
+      />
       <div style={{ padding: '8px 12px 12px' }}>
         {fields.length === 0 ? (
           <div style={{ color: '#64748b', padding: '8px 0' }}>
