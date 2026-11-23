@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@brume/shared": "workspace:*",
-    "@nestjs/common": "^12.4.0",
+    "@nestjs/common": "^12.5.1",
     "@nestjs/core": "^12.5.0",
     "@nestjs/platform-express": "^12.5.0",
     "@prisma/adapter-pg": "7.10.1",
