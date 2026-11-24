@@ -8,6 +8,11 @@ import {
   useNodesState,
   Connection,
   Edge,
+  BaseEdge,
+  EdgeProps,
+  EdgeToolbar,
+  getBezierPath,
+  useReactFlow,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import {
@@ -17,6 +22,60 @@ import {
 } from '../model-block/ModelBlock';
 
 const nodeTypes = { model: ModelBlock };
+
+function BaseCustomEdge({
+  id,
+  sourceX,
+  sourceY,
+  targetX,
+  targetY,
+  sourcePosition,
+  targetPosition,
+  selected,
+}: EdgeProps) {
+  const { deleteElements } = useReactFlow();
+  const [edgePath, centerX, centerY] = getBezierPath({
+    sourceX,
+    sourceY,
+    sourcePosition,
+    targetX,
+    targetY,
+    targetPosition,
+  });
+
+  return (
+    <>
+      <BaseEdge id={id} path={edgePath} />
+      {selected && (
+        <EdgeToolbar edgeId={id} x={centerX} y={centerY} isVisible>
+          <button
+            type="button"
+            aria-label="Delete edge"
+            title="Delete edge"
+            onClick={() => deleteElements({ edges: [{ id }] })}
+            style={{
+              width: '21px',
+              height: '21px',
+              padding: 0,
+              border: '1px solid #cbd5e1',
+              borderRadius: '50%',
+              background: '#ffffff',
+              color: '#64748b',
+              cursor: 'pointer',
+              fontSize: '18px',
+              lineHeight: '20px',
+              boxShadow: '0 2px 6px rgba(15, 23, 42, 0.12)',
+            }}
+          >
+            ×
+          </button>
+        </EdgeToolbar>
+      )}
+    </>
+  );
+}
+
+const edgeTypes = { basicEdge: BaseCustomEdge };
 
 /**
  * Determines whether a connection can be created between two nodes.
@@ -61,7 +120,7 @@ export function Canvas() {
   function onConnect(connection: Connection) {
     setEdges((currentEdges) =>
       canCreateConnection(connection, currentEdges)
-        ? addEdge(connection, currentEdges)
+        ? addEdge({ ...connection, type: 'basicEdge' }, currentEdges)
         : currentEdges,
     );
   }
@@ -98,6 +157,7 @@ export function Canvas() {
       onConnect={onConnect}
       isValidConnection={(connection) => canCreateConnection(connection, edges)}
       nodeTypes={nodeTypes}
+      edgeTypes={edgeTypes}
     >
       <Background />
       <Controls />
