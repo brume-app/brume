@@ -1,16 +1,48 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
-import { Canvas } from './Canvas';
+import { Canvas, canCreateConnection } from './Canvas';
 
 describe('Canvas', () => {
+  it('refuses connections to the same block', () => {
+    expect(
+      canCreateConnection(
+        {
+          source: 'model-1',
+          target: 'model-1',
+          sourceHandle: null,
+          targetHandle: null,
+        },
+        [],
+      ),
+    ).toBe(false);
+  });
+
+  it('refuses duplicate connections', () => {
+    const connection = {
+      source: 'model-1',
+      target: 'model-2',
+      sourceHandle: null,
+      targetHandle: null,
+    };
+
+    expect(
+      canCreateConnection(connection, [
+        {
+          id: 'edge-1',
+          ...connection,
+        },
+      ]),
+    ).toBe(false);
+  });
+
   it('starts with no nodes', () => {
     render(<Canvas />);
 
     expect(screen.queryByText(/new model/i)).not.toBeInTheDocument();
   });
 
-  it('adds a model block when clicking the add button', async () => {
+  it('adds a model block from the blocks panel', async () => {
     const user = userEvent.setup();
     render(<Canvas />);
 
@@ -31,6 +63,20 @@ describe('Canvas', () => {
     await user.click(addButton);
 
     expect(screen.getAllByText('New model')).toHaveLength(3);
+  });
+
+  it('deletes a selected model block with its node delete button', async () => {
+    const user = userEvent.setup();
+    render(<Canvas />);
+
+    await user.click(screen.getByRole('button', { name: /add node/i }));
+    fireEvent.click(screen.getByText('New model'));
+
+    const deleteButton = screen.getByRole('button', { name: /delete/i });
+    expect(deleteButton).toBeEnabled();
+
+    await user.click(deleteButton);
+    expect(screen.queryByText('New model')).not.toBeInTheDocument();
   });
 
   it('adds, edits and removes a field from a model block', async () => {
